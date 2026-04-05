@@ -1,0 +1,146 @@
+DREAMWARD — NEXT STEPS
+======================
+Current state: design system complete, all 5 screens built with mock data,
+router wired, Field Guide done. BLoC not yet connected. No real DB reads/writes.
+
+
+TIER 1 — MAKE IT REAL (core logging flows)
+-------------------------------------------
+These turn the app from a prototype into something you can actually use.
+
+1. DREAM ENTRY FORM
+   The /journal/dreams/new route is a placeholder. Build the creation screen:
+   - Title, body (multi-line), date/time, clarity rating (1–5), dream type tag
+   - Emotion tags (stored as JSON array)
+   - On save: insert to DB via DreamJournalBloc
+   This is the highest-priority feature — dream recall is the foundation of
+   everything else in the practice.
+
+2. OBE ENTRY FORM
+   The /journal/obe/new route is a placeholder. Build the creation screen:
+   - Date/time, technique, session type (DELIBERATE/AMBIENT/BRIDGE)
+   - Phase reached (PHASE I–IV selector)
+   - Onset toggle + intensity (TRACE/STRONG/SURGE)
+   - Field type (LOCAL/EXPANDED/PARALLEL)
+   - Outcome (CLEAN/PARTIAL/ATTEMPTED)
+   - Pre-session target (pulled from today's intention if set)
+   - Snippet / body text
+   This completes the core OBE logging loop.
+
+3. WIRE DREAMS SCREEN TO REAL DATA
+   Replace mock list in dreams_screen.dart with BLoC stream from DB.
+   DreamJournalBloc already exists in DI — connect it.
+
+4. WIRE OBE SCREEN TO REAL DATA
+   Same pattern. ObeBloc → real entries from Drift DB.
+
+
+TIER 2 — CLOSE THE LOOP (today screen becomes functional)
+----------------------------------------------------------
+5. TODAY SCREEN — SLEEP HOURS
+   Log last night's sleep from the DailyRundown table.
+   Show real hours, or a prompt to log them if not set.
+
+6. TODAY SCREEN — RITUAL PERSISTENCE
+   Right now ritual checkboxes reset on every app open.
+   Persist them to the DailyRundown row for widget.date.
+   Auto-reset at midnight or on date change.
+
+7. TODAY SCREEN — INTENTION PERSISTENCE
+   Save the intention text to DailyRundown.
+   When OBE entry is created, pre-fill the target field from tonight's intention.
+
+8. TODAY SCREEN — LAST SESSION (real data)
+   Replace mock OBE + dream with actual most-recent entries from DB.
+
+
+TIER 3 — DETAIL SCREENS
+------------------------
+9. DREAM DETAIL SCREEN
+   Full read view of a dream entry. Title, body, tags, clarity bar, date.
+   The /journal/dreams/:dreamId route is a placeholder.
+
+10. OBE DETAIL SCREEN
+    Full read view of an OBE entry. All phase/onset/field data displayed.
+    The /journal/obe/:obeId route is a placeholder.
+
+11. EDIT SCREENS
+    Dream edit and OBE edit — reuse the creation forms pre-filled with
+    existing data. Routes already defined (/edit).
+
+
+TIER 4 — CONTENT & EXPLORE
+---------------------------
+12. EXPLORE REAL DATA
+    Connect ExploreScreen category grid to built-in seeded content.
+    Category → filtered list of ContentItems from DB.
+
+13. CONTENT DETAIL SCREEN
+    Full read view for a technique, affirmation, meditation, or visualization.
+    Markdown-style body rendering in the retro terminal style.
+
+14. FAVORITES
+    Allow marking a content item as favorite. Store in user_content_favorites
+    or a simple flag on the ContentItems table. Surface in Explore.
+
+
+TIER 5 — NOTIFICATIONS
+-----------------------
+15. WBTB ALARM
+    Settings screen lets user pick a WBTB alarm time.
+    flutter_local_notifications already in pubspec.
+    This is high-value for the actual practice.
+
+16. EVENING REMINDER
+    Gentle push at a user-set time: "Set your intention for tonight."
+
+
+TIER 6 — CALENDAR & STATS
+--------------------------
+17. CALENDAR REAL DATA
+    Replace mock summaries with DB queries per visible date range.
+    Show colored dots for days with dreams, OBEs, completed rundowns.
+
+18. CALENDAR DAY VIEW
+    The /calendar/:date route is a placeholder.
+    Show all entries (dreams + OBEs) for that date with links to detail screens.
+
+19. STATS STRIP (real numbers)
+    Sessions This Month, Last OBE date, and Streak — all calculated from DB.
+    Streak = consecutive days with any logged entry.
+
+
+TIER 7 — POLISH & ONBOARDING
+------------------------------
+20. ONBOARDING FLOW
+    First-launch experience. Explain the system briefly using Field Guide
+    sections as the source material. Set up WBTB alarm during onboarding.
+
+21. SETTINGS SCREEN
+    Notification times, WBTB alarm toggle, theme (dark only for now),
+    data export (plain text or JSON), app version.
+
+22. AUDIO MEDITATIONS
+    just_audio is already in pubspec. Wire the Body Scan and Consciousness
+    Anchor meditations to actual audio files. Either bundled or streamed.
+
+23. SEARCH
+    Simple full-text search across dreams and OBE entries. Useful once
+    the log grows. Could live as a FAB or in the app bar.
+
+
+QUICK WINS (can do any time, low effort)
+-----------------------------------------
+- Pull-to-refresh on Dreams and OBE list screens
+- Swipe-to-delete on list entries (with confirmation)
+- Empty state for Dreams screen (matching OBE screen's terminal style)
+- AppBar on Calendar day view with back navigation
+- The "LOG" tab label in the bottom nav could be renamed to "CALENDAR"
+  since that's more descriptive of what it contains
+
+
+SUGGESTED ORDER FOR NEXT SESSION
+----------------------------------
+Start with items 1 and 2 (entry forms), then 3 and 4 (wire lists).
+That gets the app to a state where you can actually use it for a real session
+and see your entries persist. Everything else builds on top of real data.
