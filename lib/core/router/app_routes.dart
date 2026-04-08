@@ -26,10 +26,10 @@ abstract final class AppRoutes {
   static const obeDetail = 'obe-detail'; // /journal/obe/:obeId
   static const obeEdit = 'obe-edit'; // /journal/obe/:obeId/edit
 
-  // --- Explore / Content tab ---
+  // --- Explore / Content (tab hidden, routes retained for future use) ---
   static const explore = 'explore';
-  static const exploreCategory = 'explore-category'; // /explore/:category
-  static const contentItem = 'content-item'; // /explore/:category/:itemId
+  static const exploreCategory = 'explore-category';
+  static const contentItem = 'content-item';
 
   // --- Calendar tab ---
   static const calendarMonth = 'calendar-month';

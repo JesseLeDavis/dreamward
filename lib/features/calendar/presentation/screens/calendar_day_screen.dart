@@ -268,8 +268,10 @@ class _CalendarDayScreenState extends State<CalendarDayScreen> {
     );
   }
 
+  static const _obeTypeLabels = ['DELIBERATE', 'AMBIENT', 'BRIDGE'];
+
   Widget _buildObeCard(ObeLog log) {
-    final sessionType = _parseSessionType(log.description);
+    final sessionType = _obeTypeLabels[log.sessionType.clamp(0, 2)];
     final outcomeIndex = log.entryState.clamp(0, _outcomeLabels.length - 1);
     final outcomeLabel = _outcomeLabels[outcomeIndex];
     final outcomeColor = _outcomeColors[outcomeIndex];
@@ -293,10 +295,8 @@ class _CalendarDayScreenState extends State<CalendarDayScreen> {
           children: [
             Row(
               children: [
-                if (sessionType != null) ...[
-                  DataTag(label: sessionType, color: AppColors.amber),
-                  const SizedBox(width: 8),
-                ],
+                DataTag(label: sessionType, color: AppColors.amber),
+                const SizedBox(width: 8),
                 DataTag(label: outcomeLabel, color: outcomeColor),
               ],
             ),
@@ -315,12 +315,6 @@ class _CalendarDayScreenState extends State<CalendarDayScreen> {
     );
   }
 
-  /// Parses a `[DELIBERATE]`, `[AMBIENT]`, or `[BRIDGE]` prefix from the
-  /// description text. Returns null if no prefix is found.
-  static String? _parseSessionType(String description) {
-    final match = RegExp(r'^\[(\w+)\]').firstMatch(description);
-    return match?.group(1);
-  }
 }
 
 class _DayData {

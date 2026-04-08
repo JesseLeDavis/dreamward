@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';1
+import 'package:get_it/get_it.dart';
 
 import 'core/database/app_database.dart';
 import 'core/di/injection.dart';

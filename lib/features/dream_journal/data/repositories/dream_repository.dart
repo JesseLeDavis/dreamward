@@ -1,7 +1,7 @@
 import '../../../../core/database/app_database.dart';
 
 abstract class DreamRepository {
-  Future<List<Dream>> getDreams({int limit = 50, int offset = 0});
+  Future<List<Dream>> getDreams({int limit = 50, int offset = 0, String? searchQuery});
   Future<int> insertDream(DreamsCompanion companion);
   Future<void> archiveDream(int id);
   Future<void> setTagsForDream(int dreamId, List<int> tagIds);

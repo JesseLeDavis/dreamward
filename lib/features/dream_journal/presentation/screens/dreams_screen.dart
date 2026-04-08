@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -22,6 +24,9 @@ class DreamsScreen extends StatefulWidget {
 }
 
 class _DreamsScreenState extends State<DreamsScreen> {
+  final _searchController = TextEditingController();
+  Timer? _debounce;
+
   @override
   void initState() {
     super.initState();
@@ -29,15 +34,50 @@ class _DreamsScreenState extends State<DreamsScreen> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () {
+      context.read<DreamJournalBloc>().add(SearchDreams(value));
+    });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    context.read<DreamJournalBloc>().add(SearchDreams(''));
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundBase,
-      appBar: _DreamsAppBar(),
-      body: const Column(
-        children: [
-          _FilterBar(),
-          Expanded(child: _DreamList()),
-        ],
+    return BlocListener<DreamJournalBloc, DreamJournalState>(
+      listener: (context, state) {
+        // Clear search field when a tag/character filter is applied
+        if (state is DreamJournalLoaded &&
+            state.isFiltered &&
+            _searchController.text.isNotEmpty) {
+          _searchController.clear();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundBase,
+        appBar: _DreamsAppBar(),
+        body: Column(
+          children: [
+            const _FilterBar(),
+            _SearchField(
+              controller: _searchController,
+              onChanged: _onSearchChanged,
+              onClear: _clearSearch,
+              hintText: 'SEARCH TRANSMISSIONS...',
+            ),
+            const Expanded(child: _DreamList()),
+          ],
+        ),
       ),
     );
   }
@@ -286,6 +326,15 @@ class _DreamList extends StatelessWidget {
         if (state is DreamJournalLoaded) {
           final dreams = state.dreams;
 
+          if (dreams.isEmpty && (state.isSearching || state.isFiltered)) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: Text('NO SIGNAL MATCH.', style: AppTypography.label),
+              ),
+            );
+          }
+
           if (dreams.isEmpty) {
             return Center(
               child: Padding(
@@ -486,6 +535,78 @@ class _ClarityBar extends StatelessWidget {
             color: i <= clarity + 1 ? AppColors.amber : AppColors.borderStrong,
           ),
       ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Search field
+// ---------------------------------------------------------------------------
+
+class _SearchField extends StatelessWidget {
+  const _SearchField({
+    required this.controller,
+    required this.onChanged,
+    required this.onClear,
+    required this.hintText,
+  });
+
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+  final String hintText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.screenH,
+        vertical: 8,
+      ),
+      decoration: const BoxDecoration(
+        color: AppColors.backgroundDeep,
+        border: Border(bottom: BorderSide(color: AppColors.borderSubtle)),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.backgroundDeep,
+          border: Border.all(color: AppColors.borderNormal),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.search, size: 14, color: AppColors.textMuted),
+            const SizedBox(width: 6),
+            Expanded(
+              child: TextField(
+                controller: controller,
+                onChanged: onChanged,
+                style: AppTypography.body,
+                decoration: InputDecoration(
+                  hintText: hintText,
+                  hintStyle: AppTypography.hint,
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                ),
+              ),
+            ),
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: controller,
+              builder: (_, value, __) {
+                if (value.text.isEmpty) return const SizedBox.shrink();
+                return GestureDetector(
+                  onTap: onClear,
+                  child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Icon(Icons.close, size: 14, color: AppColors.textMuted),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

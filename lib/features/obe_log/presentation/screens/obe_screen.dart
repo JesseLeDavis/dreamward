@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -21,11 +23,33 @@ class ObeScreen extends StatefulWidget {
 class _ObeScreenState extends State<ObeScreen> {
   String _typeFilter = 'ALL';
   String _stateFilter = 'ALL';
+  String _searchQuery = '';
+  final _searchController = TextEditingController();
+  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
     context.read<ObeLogBloc>().add(LoadObeLogs());
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () {
+      setState(() => _searchQuery = value.trim().toLowerCase());
+    });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() => _searchQuery = '');
   }
 
   @override
@@ -38,7 +62,23 @@ class _ObeScreenState extends State<ObeScreen> {
         onTypeFilter: (v) => setState(() => _typeFilter = v),
         onStateFilter: (v) => setState(() => _stateFilter = v),
       ),
-      body: _ObeList(typeFilter: _typeFilter, stateFilter: _stateFilter),
+      body: Column(
+        children: [
+          _SearchField(
+            controller: _searchController,
+            onChanged: _onSearchChanged,
+            onClear: _clearSearch,
+            hintText: 'SEARCH EXCURSIONS...',
+          ),
+          Expanded(
+            child: _ObeList(
+              typeFilter: _typeFilter,
+              stateFilter: _stateFilter,
+              searchQuery: _searchQuery,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -220,10 +260,15 @@ class _FilterRow extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _ObeList extends StatelessWidget {
-  const _ObeList({required this.typeFilter, required this.stateFilter});
+  const _ObeList({
+    required this.typeFilter,
+    required this.stateFilter,
+    required this.searchQuery,
+  });
 
   final String typeFilter;
   final String stateFilter;
+  final String searchQuery;
 
   @override
   Widget build(BuildContext context) {
@@ -254,11 +299,14 @@ class _ObeList extends StatelessWidget {
         }
 
         final filtered = allLogs.where((log) {
-          final type = _parseSessionType(log.description);
+          final type = _sessionTypeLabel(log.sessionType);
           final stateLabel = _stateLabel(log.entryState);
           final typeMatch = typeFilter == 'ALL' || type == typeFilter;
           final stateMatch = stateFilter == 'ALL' || stateLabel == stateFilter;
-          return typeMatch && stateMatch;
+          final searchMatch = searchQuery.isEmpty ||
+              log.description.toLowerCase().contains(searchQuery) ||
+              (log.intention?.toLowerCase().contains(searchQuery) ?? false);
+          return typeMatch && stateMatch && searchMatch;
         }).toList();
 
         if (filtered.isEmpty) {
@@ -301,17 +349,12 @@ class _ObeList extends StatelessWidget {
 // Helpers for mapping ObeLog fields to display values
 // ---------------------------------------------------------------------------
 
-String _parseSessionType(String description) {
-  if (description.startsWith('[DELIBERATE]')) return 'DELIBERATE';
-  if (description.startsWith('[AMBIENT]')) return 'AMBIENT';
-  if (description.startsWith('[BRIDGE]')) return 'BRIDGE';
-  return 'DELIBERATE';
-}
-
-String _parseSnippet(String description) {
-  final match = RegExp(r'^\[(?:DELIBERATE|AMBIENT|BRIDGE)\]\s*').firstMatch(description);
-  if (match != null) return description.substring(match.end).trim();
-  return description;
+String _sessionTypeLabel(int sessionType) {
+  return switch (sessionType) {
+    1 => 'AMBIENT',
+    2 => 'BRIDGE',
+    _ => 'DELIBERATE',
+  };
 }
 
 String _stateLabel(int entryState) {
@@ -383,7 +426,7 @@ class _CardHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sessionType = _parseSessionType(log.description);
+    final sessionType = _sessionTypeLabel(log.sessionType);
     final technique = log.techniqueNameOverride?.toUpperCase() ?? '---';
     final label = _stateLabel(log.entryState);
     final date = _formatDate(log.createdAt);
@@ -481,7 +524,7 @@ class _CardBody extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.cardPad),
       child: Text(
-        _parseSnippet(log.description),
+        log.description,
         style: AppTypography.dataOutput,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
@@ -690,6 +733,78 @@ class _FocusRow extends StatelessWidget {
           const SizedBox(width: 8),
           Flexible(child: Text(description, style: AppTypography.bodyMuted)),
         ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Search field
+// ---------------------------------------------------------------------------
+
+class _SearchField extends StatelessWidget {
+  const _SearchField({
+    required this.controller,
+    required this.onChanged,
+    required this.onClear,
+    required this.hintText,
+  });
+
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+  final String hintText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.screenH,
+        vertical: 8,
+      ),
+      decoration: const BoxDecoration(
+        color: AppColors.backgroundDeep,
+        border: Border(bottom: BorderSide(color: AppColors.borderSubtle)),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.backgroundDeep,
+          border: Border.all(color: AppColors.borderNormal),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.search, size: 14, color: AppColors.textMuted),
+            const SizedBox(width: 6),
+            Expanded(
+              child: TextField(
+                controller: controller,
+                onChanged: onChanged,
+                style: AppTypography.body,
+                decoration: InputDecoration(
+                  hintText: hintText,
+                  hintStyle: AppTypography.hint,
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                ),
+              ),
+            ),
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: controller,
+              builder: (_, value, __) {
+                if (value.text.isEmpty) return const SizedBox.shrink();
+                return GestureDetector(
+                  onTap: onClear,
+                  child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Icon(Icons.close, size: 14, color: AppColors.textMuted),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

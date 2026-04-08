@@ -135,6 +135,46 @@ class $DailyRundownsTable extends DailyRundowns
       defaultConstraints: GeneratedColumn.constraintIsAlways(
           'CHECK ("did_affirmations" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _ritualClearMeta =
+      const VerificationMeta('ritualClear');
+  @override
+  late final GeneratedColumn<bool> ritualClear = GeneratedColumn<bool>(
+      'ritual_clear', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("ritual_clear" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _ritualToneMeta =
+      const VerificationMeta('ritualTone');
+  @override
+  late final GeneratedColumn<bool> ritualTone = GeneratedColumn<bool>(
+      'ritual_tone', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("ritual_tone" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _ritualFieldMeta =
+      const VerificationMeta('ritualField');
+  @override
+  late final GeneratedColumn<bool> ritualField = GeneratedColumn<bool>(
+      'ritual_field', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("ritual_field" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _ritualAffirmationMeta =
+      const VerificationMeta('ritualAffirmation');
+  @override
+  late final GeneratedColumn<bool> ritualAffirmation = GeneratedColumn<bool>(
+      'ritual_affirmation', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("ritual_affirmation" IN (0, 1))'),
+      defaultValue: const Constant(false));
   static const VerificationMeta _sleepIntentionMeta =
       const VerificationMeta('sleepIntention');
   @override
@@ -189,6 +229,10 @@ class $DailyRundownsTable extends DailyRundowns
         didVisualize,
         didBodyScan,
         didAffirmations,
+        ritualClear,
+        ritualTone,
+        ritualField,
+        ritualAffirmation,
         sleepIntention,
         bedtimeHour,
         bedtimeMinute,
@@ -310,6 +354,30 @@ class $DailyRundownsTable extends DailyRundowns
           didAffirmations.isAcceptableOrUnknown(
               data['did_affirmations']!, _didAffirmationsMeta));
     }
+    if (data.containsKey('ritual_clear')) {
+      context.handle(
+          _ritualClearMeta,
+          ritualClear.isAcceptableOrUnknown(
+              data['ritual_clear']!, _ritualClearMeta));
+    }
+    if (data.containsKey('ritual_tone')) {
+      context.handle(
+          _ritualToneMeta,
+          ritualTone.isAcceptableOrUnknown(
+              data['ritual_tone']!, _ritualToneMeta));
+    }
+    if (data.containsKey('ritual_field')) {
+      context.handle(
+          _ritualFieldMeta,
+          ritualField.isAcceptableOrUnknown(
+              data['ritual_field']!, _ritualFieldMeta));
+    }
+    if (data.containsKey('ritual_affirmation')) {
+      context.handle(
+          _ritualAffirmationMeta,
+          ritualAffirmation.isAcceptableOrUnknown(
+              data['ritual_affirmation']!, _ritualAffirmationMeta));
+    }
     if (data.containsKey('sleep_intention')) {
       context.handle(
           _sleepIntentionMeta,
@@ -381,6 +449,14 @@ class $DailyRundownsTable extends DailyRundowns
           .read(DriftSqlType.bool, data['${effectivePrefix}did_body_scan'])!,
       didAffirmations: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}did_affirmations'])!,
+      ritualClear: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}ritual_clear'])!,
+      ritualTone: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}ritual_tone'])!,
+      ritualField: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}ritual_field'])!,
+      ritualAffirmation: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}ritual_affirmation'])!,
       sleepIntention: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}sleep_intention']),
       bedtimeHour: attachedDatabase.typeMapping
@@ -422,6 +498,10 @@ class DailyRundown extends DataClass implements Insertable<DailyRundown> {
   final bool didVisualize;
   final bool didBodyScan;
   final bool didAffirmations;
+  final bool ritualClear;
+  final bool ritualTone;
+  final bool ritualField;
+  final bool ritualAffirmation;
   final String? sleepIntention;
   final int? bedtimeHour;
   final int? bedtimeMinute;
@@ -446,6 +526,10 @@ class DailyRundown extends DataClass implements Insertable<DailyRundown> {
       required this.didVisualize,
       required this.didBodyScan,
       required this.didAffirmations,
+      required this.ritualClear,
+      required this.ritualTone,
+      required this.ritualField,
+      required this.ritualAffirmation,
       this.sleepIntention,
       this.bedtimeHour,
       this.bedtimeMinute,
@@ -498,6 +582,10 @@ class DailyRundown extends DataClass implements Insertable<DailyRundown> {
     map['did_visualize'] = Variable<bool>(didVisualize);
     map['did_body_scan'] = Variable<bool>(didBodyScan);
     map['did_affirmations'] = Variable<bool>(didAffirmations);
+    map['ritual_clear'] = Variable<bool>(ritualClear);
+    map['ritual_tone'] = Variable<bool>(ritualTone);
+    map['ritual_field'] = Variable<bool>(ritualField);
+    map['ritual_affirmation'] = Variable<bool>(ritualAffirmation);
     if (!nullToAbsent || sleepIntention != null) {
       map['sleep_intention'] = Variable<String>(sleepIntention);
     }
@@ -558,6 +646,10 @@ class DailyRundown extends DataClass implements Insertable<DailyRundown> {
       didVisualize: Value(didVisualize),
       didBodyScan: Value(didBodyScan),
       didAffirmations: Value(didAffirmations),
+      ritualClear: Value(ritualClear),
+      ritualTone: Value(ritualTone),
+      ritualField: Value(ritualField),
+      ritualAffirmation: Value(ritualAffirmation),
       sleepIntention: sleepIntention == null && nullToAbsent
           ? const Value.absent()
           : Value(sleepIntention),
@@ -595,6 +687,10 @@ class DailyRundown extends DataClass implements Insertable<DailyRundown> {
       didVisualize: serializer.fromJson<bool>(json['didVisualize']),
       didBodyScan: serializer.fromJson<bool>(json['didBodyScan']),
       didAffirmations: serializer.fromJson<bool>(json['didAffirmations']),
+      ritualClear: serializer.fromJson<bool>(json['ritualClear']),
+      ritualTone: serializer.fromJson<bool>(json['ritualTone']),
+      ritualField: serializer.fromJson<bool>(json['ritualField']),
+      ritualAffirmation: serializer.fromJson<bool>(json['ritualAffirmation']),
       sleepIntention: serializer.fromJson<String?>(json['sleepIntention']),
       bedtimeHour: serializer.fromJson<int?>(json['bedtimeHour']),
       bedtimeMinute: serializer.fromJson<int?>(json['bedtimeMinute']),
@@ -624,6 +720,10 @@ class DailyRundown extends DataClass implements Insertable<DailyRundown> {
       'didVisualize': serializer.toJson<bool>(didVisualize),
       'didBodyScan': serializer.toJson<bool>(didBodyScan),
       'didAffirmations': serializer.toJson<bool>(didAffirmations),
+      'ritualClear': serializer.toJson<bool>(ritualClear),
+      'ritualTone': serializer.toJson<bool>(ritualTone),
+      'ritualField': serializer.toJson<bool>(ritualField),
+      'ritualAffirmation': serializer.toJson<bool>(ritualAffirmation),
       'sleepIntention': serializer.toJson<String?>(sleepIntention),
       'bedtimeHour': serializer.toJson<int?>(bedtimeHour),
       'bedtimeMinute': serializer.toJson<int?>(bedtimeMinute),
@@ -651,6 +751,10 @@ class DailyRundown extends DataClass implements Insertable<DailyRundown> {
           bool? didVisualize,
           bool? didBodyScan,
           bool? didAffirmations,
+          bool? ritualClear,
+          bool? ritualTone,
+          bool? ritualField,
+          bool? ritualAffirmation,
           Value<String?> sleepIntention = const Value.absent(),
           Value<int?> bedtimeHour = const Value.absent(),
           Value<int?> bedtimeMinute = const Value.absent(),
@@ -683,6 +787,10 @@ class DailyRundown extends DataClass implements Insertable<DailyRundown> {
         didVisualize: didVisualize ?? this.didVisualize,
         didBodyScan: didBodyScan ?? this.didBodyScan,
         didAffirmations: didAffirmations ?? this.didAffirmations,
+        ritualClear: ritualClear ?? this.ritualClear,
+        ritualTone: ritualTone ?? this.ritualTone,
+        ritualField: ritualField ?? this.ritualField,
+        ritualAffirmation: ritualAffirmation ?? this.ritualAffirmation,
         sleepIntention:
             sleepIntention.present ? sleepIntention.value : this.sleepIntention,
         bedtimeHour: bedtimeHour.present ? bedtimeHour.value : this.bedtimeHour,
@@ -735,6 +843,15 @@ class DailyRundown extends DataClass implements Insertable<DailyRundown> {
       didAffirmations: data.didAffirmations.present
           ? data.didAffirmations.value
           : this.didAffirmations,
+      ritualClear:
+          data.ritualClear.present ? data.ritualClear.value : this.ritualClear,
+      ritualTone:
+          data.ritualTone.present ? data.ritualTone.value : this.ritualTone,
+      ritualField:
+          data.ritualField.present ? data.ritualField.value : this.ritualField,
+      ritualAffirmation: data.ritualAffirmation.present
+          ? data.ritualAffirmation.value
+          : this.ritualAffirmation,
       sleepIntention: data.sleepIntention.present
           ? data.sleepIntention.value
           : this.sleepIntention,
@@ -769,6 +886,10 @@ class DailyRundown extends DataClass implements Insertable<DailyRundown> {
           ..write('didVisualize: $didVisualize, ')
           ..write('didBodyScan: $didBodyScan, ')
           ..write('didAffirmations: $didAffirmations, ')
+          ..write('ritualClear: $ritualClear, ')
+          ..write('ritualTone: $ritualTone, ')
+          ..write('ritualField: $ritualField, ')
+          ..write('ritualAffirmation: $ritualAffirmation, ')
           ..write('sleepIntention: $sleepIntention, ')
           ..write('bedtimeHour: $bedtimeHour, ')
           ..write('bedtimeMinute: $bedtimeMinute, ')
@@ -798,6 +919,10 @@ class DailyRundown extends DataClass implements Insertable<DailyRundown> {
         didVisualize,
         didBodyScan,
         didAffirmations,
+        ritualClear,
+        ritualTone,
+        ritualField,
+        ritualAffirmation,
         sleepIntention,
         bedtimeHour,
         bedtimeMinute,
@@ -826,6 +951,10 @@ class DailyRundown extends DataClass implements Insertable<DailyRundown> {
           other.didVisualize == this.didVisualize &&
           other.didBodyScan == this.didBodyScan &&
           other.didAffirmations == this.didAffirmations &&
+          other.ritualClear == this.ritualClear &&
+          other.ritualTone == this.ritualTone &&
+          other.ritualField == this.ritualField &&
+          other.ritualAffirmation == this.ritualAffirmation &&
           other.sleepIntention == this.sleepIntention &&
           other.bedtimeHour == this.bedtimeHour &&
           other.bedtimeMinute == this.bedtimeMinute &&
@@ -852,6 +981,10 @@ class DailyRundownsCompanion extends UpdateCompanion<DailyRundown> {
   final Value<bool> didVisualize;
   final Value<bool> didBodyScan;
   final Value<bool> didAffirmations;
+  final Value<bool> ritualClear;
+  final Value<bool> ritualTone;
+  final Value<bool> ritualField;
+  final Value<bool> ritualAffirmation;
   final Value<String?> sleepIntention;
   final Value<int?> bedtimeHour;
   final Value<int?> bedtimeMinute;
@@ -877,6 +1010,10 @@ class DailyRundownsCompanion extends UpdateCompanion<DailyRundown> {
     this.didVisualize = const Value.absent(),
     this.didBodyScan = const Value.absent(),
     this.didAffirmations = const Value.absent(),
+    this.ritualClear = const Value.absent(),
+    this.ritualTone = const Value.absent(),
+    this.ritualField = const Value.absent(),
+    this.ritualAffirmation = const Value.absent(),
     this.sleepIntention = const Value.absent(),
     this.bedtimeHour = const Value.absent(),
     this.bedtimeMinute = const Value.absent(),
@@ -903,6 +1040,10 @@ class DailyRundownsCompanion extends UpdateCompanion<DailyRundown> {
     this.didVisualize = const Value.absent(),
     this.didBodyScan = const Value.absent(),
     this.didAffirmations = const Value.absent(),
+    this.ritualClear = const Value.absent(),
+    this.ritualTone = const Value.absent(),
+    this.ritualField = const Value.absent(),
+    this.ritualAffirmation = const Value.absent(),
     this.sleepIntention = const Value.absent(),
     this.bedtimeHour = const Value.absent(),
     this.bedtimeMinute = const Value.absent(),
@@ -929,6 +1070,10 @@ class DailyRundownsCompanion extends UpdateCompanion<DailyRundown> {
     Expression<bool>? didVisualize,
     Expression<bool>? didBodyScan,
     Expression<bool>? didAffirmations,
+    Expression<bool>? ritualClear,
+    Expression<bool>? ritualTone,
+    Expression<bool>? ritualField,
+    Expression<bool>? ritualAffirmation,
     Expression<String>? sleepIntention,
     Expression<int>? bedtimeHour,
     Expression<int>? bedtimeMinute,
@@ -956,6 +1101,10 @@ class DailyRundownsCompanion extends UpdateCompanion<DailyRundown> {
       if (didVisualize != null) 'did_visualize': didVisualize,
       if (didBodyScan != null) 'did_body_scan': didBodyScan,
       if (didAffirmations != null) 'did_affirmations': didAffirmations,
+      if (ritualClear != null) 'ritual_clear': ritualClear,
+      if (ritualTone != null) 'ritual_tone': ritualTone,
+      if (ritualField != null) 'ritual_field': ritualField,
+      if (ritualAffirmation != null) 'ritual_affirmation': ritualAffirmation,
       if (sleepIntention != null) 'sleep_intention': sleepIntention,
       if (bedtimeHour != null) 'bedtime_hour': bedtimeHour,
       if (bedtimeMinute != null) 'bedtime_minute': bedtimeMinute,
@@ -984,6 +1133,10 @@ class DailyRundownsCompanion extends UpdateCompanion<DailyRundown> {
       Value<bool>? didVisualize,
       Value<bool>? didBodyScan,
       Value<bool>? didAffirmations,
+      Value<bool>? ritualClear,
+      Value<bool>? ritualTone,
+      Value<bool>? ritualField,
+      Value<bool>? ritualAffirmation,
       Value<String?>? sleepIntention,
       Value<int?>? bedtimeHour,
       Value<int?>? bedtimeMinute,
@@ -1009,6 +1162,10 @@ class DailyRundownsCompanion extends UpdateCompanion<DailyRundown> {
       didVisualize: didVisualize ?? this.didVisualize,
       didBodyScan: didBodyScan ?? this.didBodyScan,
       didAffirmations: didAffirmations ?? this.didAffirmations,
+      ritualClear: ritualClear ?? this.ritualClear,
+      ritualTone: ritualTone ?? this.ritualTone,
+      ritualField: ritualField ?? this.ritualField,
+      ritualAffirmation: ritualAffirmation ?? this.ritualAffirmation,
       sleepIntention: sleepIntention ?? this.sleepIntention,
       bedtimeHour: bedtimeHour ?? this.bedtimeHour,
       bedtimeMinute: bedtimeMinute ?? this.bedtimeMinute,
@@ -1075,6 +1232,18 @@ class DailyRundownsCompanion extends UpdateCompanion<DailyRundown> {
     if (didAffirmations.present) {
       map['did_affirmations'] = Variable<bool>(didAffirmations.value);
     }
+    if (ritualClear.present) {
+      map['ritual_clear'] = Variable<bool>(ritualClear.value);
+    }
+    if (ritualTone.present) {
+      map['ritual_tone'] = Variable<bool>(ritualTone.value);
+    }
+    if (ritualField.present) {
+      map['ritual_field'] = Variable<bool>(ritualField.value);
+    }
+    if (ritualAffirmation.present) {
+      map['ritual_affirmation'] = Variable<bool>(ritualAffirmation.value);
+    }
     if (sleepIntention.present) {
       map['sleep_intention'] = Variable<String>(sleepIntention.value);
     }
@@ -1117,6 +1286,10 @@ class DailyRundownsCompanion extends UpdateCompanion<DailyRundown> {
           ..write('didVisualize: $didVisualize, ')
           ..write('didBodyScan: $didBodyScan, ')
           ..write('didAffirmations: $didAffirmations, ')
+          ..write('ritualClear: $ritualClear, ')
+          ..write('ritualTone: $ritualTone, ')
+          ..write('ritualField: $ritualField, ')
+          ..write('ritualAffirmation: $ritualAffirmation, ')
           ..write('sleepIntention: $sleepIntention, ')
           ..write('bedtimeHour: $bedtimeHour, ')
           ..write('bedtimeMinute: $bedtimeMinute, ')
@@ -5057,6 +5230,14 @@ class $ObeLogsTable extends ObeLogs with TableInfo<$ObeLogsTable, ObeLog> {
   late final GeneratedColumn<String> intention = GeneratedColumn<String>(
       'intention', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _sessionTypeMeta =
+      const VerificationMeta('sessionType');
+  @override
+  late final GeneratedColumn<int> sessionType = GeneratedColumn<int>(
+      'session_type', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   static const VerificationMeta _descriptionMeta =
       const VerificationMeta('description');
   @override
@@ -5217,6 +5398,7 @@ class $ObeLogsTable extends ObeLogs with TableInfo<$ObeLogsTable, ObeLog> {
         preMoodLevel,
         preEnergyLevel,
         intention,
+        sessionType,
         description,
         sensationsJson,
         hadVisuals,
@@ -5304,6 +5486,12 @@ class $ObeLogsTable extends ObeLogs with TableInfo<$ObeLogsTable, ObeLog> {
     if (data.containsKey('intention')) {
       context.handle(_intentionMeta,
           intention.isAcceptableOrUnknown(data['intention']!, _intentionMeta));
+    }
+    if (data.containsKey('session_type')) {
+      context.handle(
+          _sessionTypeMeta,
+          sessionType.isAcceptableOrUnknown(
+              data['session_type']!, _sessionTypeMeta));
     }
     if (data.containsKey('description')) {
       context.handle(
@@ -5448,6 +5636,8 @@ class $ObeLogsTable extends ObeLogs with TableInfo<$ObeLogsTable, ObeLog> {
           .read(DriftSqlType.int, data['${effectivePrefix}pre_energy_level']),
       intention: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}intention']),
+      sessionType: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}session_type'])!,
       description: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}description'])!,
       sensationsJson: attachedDatabase.typeMapping
@@ -5515,6 +5705,9 @@ class ObeLog extends DataClass implements Insertable<ObeLog> {
   final int? preMoodLevel;
   final int? preEnergyLevel;
   final String? intention;
+
+  /// Session type: 0=DELIBERATE, 1=AMBIENT, 2=BRIDGE. Defaults to DELIBERATE.
+  final int sessionType;
   final String description;
 
   /// JSON array of sensation strings: ["vibrations","paralysis","floating"]
@@ -5556,6 +5749,7 @@ class ObeLog extends DataClass implements Insertable<ObeLog> {
       this.preMoodLevel,
       this.preEnergyLevel,
       this.intention,
+      required this.sessionType,
       required this.description,
       this.sensationsJson,
       required this.hadVisuals,
@@ -5603,6 +5797,7 @@ class ObeLog extends DataClass implements Insertable<ObeLog> {
     if (!nullToAbsent || intention != null) {
       map['intention'] = Variable<String>(intention);
     }
+    map['session_type'] = Variable<int>(sessionType);
     map['description'] = Variable<String>(description);
     if (!nullToAbsent || sensationsJson != null) {
       map['sensations_json'] = Variable<String>(sensationsJson);
@@ -5675,6 +5870,7 @@ class ObeLog extends DataClass implements Insertable<ObeLog> {
       intention: intention == null && nullToAbsent
           ? const Value.absent()
           : Value(intention),
+      sessionType: Value(sessionType),
       description: Value(description),
       sensationsJson: sensationsJson == null && nullToAbsent
           ? const Value.absent()
@@ -5736,6 +5932,7 @@ class ObeLog extends DataClass implements Insertable<ObeLog> {
       preMoodLevel: serializer.fromJson<int?>(json['preMoodLevel']),
       preEnergyLevel: serializer.fromJson<int?>(json['preEnergyLevel']),
       intention: serializer.fromJson<String?>(json['intention']),
+      sessionType: serializer.fromJson<int>(json['sessionType']),
       description: serializer.fromJson<String>(json['description']),
       sensationsJson: serializer.fromJson<String?>(json['sensationsJson']),
       hadVisuals: serializer.fromJson<bool>(json['hadVisuals']),
@@ -5775,6 +5972,7 @@ class ObeLog extends DataClass implements Insertable<ObeLog> {
       'preMoodLevel': serializer.toJson<int?>(preMoodLevel),
       'preEnergyLevel': serializer.toJson<int?>(preEnergyLevel),
       'intention': serializer.toJson<String?>(intention),
+      'sessionType': serializer.toJson<int>(sessionType),
       'description': serializer.toJson<String>(description),
       'sensationsJson': serializer.toJson<String?>(sensationsJson),
       'hadVisuals': serializer.toJson<bool>(hadVisuals),
@@ -5810,6 +6008,7 @@ class ObeLog extends DataClass implements Insertable<ObeLog> {
           Value<int?> preMoodLevel = const Value.absent(),
           Value<int?> preEnergyLevel = const Value.absent(),
           Value<String?> intention = const Value.absent(),
+          int? sessionType,
           String? description,
           Value<String?> sensationsJson = const Value.absent(),
           bool? hadVisuals,
@@ -5849,6 +6048,7 @@ class ObeLog extends DataClass implements Insertable<ObeLog> {
         preEnergyLevel:
             preEnergyLevel.present ? preEnergyLevel.value : this.preEnergyLevel,
         intention: intention.present ? intention.value : this.intention,
+        sessionType: sessionType ?? this.sessionType,
         description: description ?? this.description,
         sensationsJson:
             sensationsJson.present ? sensationsJson.value : this.sensationsJson,
@@ -5906,6 +6106,8 @@ class ObeLog extends DataClass implements Insertable<ObeLog> {
           ? data.preEnergyLevel.value
           : this.preEnergyLevel,
       intention: data.intention.present ? data.intention.value : this.intention,
+      sessionType:
+          data.sessionType.present ? data.sessionType.value : this.sessionType,
       description:
           data.description.present ? data.description.value : this.description,
       sensationsJson: data.sensationsJson.present
@@ -5966,6 +6168,7 @@ class ObeLog extends DataClass implements Insertable<ObeLog> {
           ..write('preMoodLevel: $preMoodLevel, ')
           ..write('preEnergyLevel: $preEnergyLevel, ')
           ..write('intention: $intention, ')
+          ..write('sessionType: $sessionType, ')
           ..write('description: $description, ')
           ..write('sensationsJson: $sensationsJson, ')
           ..write('hadVisuals: $hadVisuals, ')
@@ -6002,6 +6205,7 @@ class ObeLog extends DataClass implements Insertable<ObeLog> {
         preMoodLevel,
         preEnergyLevel,
         intention,
+        sessionType,
         description,
         sensationsJson,
         hadVisuals,
@@ -6037,6 +6241,7 @@ class ObeLog extends DataClass implements Insertable<ObeLog> {
           other.preMoodLevel == this.preMoodLevel &&
           other.preEnergyLevel == this.preEnergyLevel &&
           other.intention == this.intention &&
+          other.sessionType == this.sessionType &&
           other.description == this.description &&
           other.sensationsJson == this.sensationsJson &&
           other.hadVisuals == this.hadVisuals &&
@@ -6070,6 +6275,7 @@ class ObeLogsCompanion extends UpdateCompanion<ObeLog> {
   final Value<int?> preMoodLevel;
   final Value<int?> preEnergyLevel;
   final Value<String?> intention;
+  final Value<int> sessionType;
   final Value<String> description;
   final Value<String?> sensationsJson;
   final Value<bool> hadVisuals;
@@ -6101,6 +6307,7 @@ class ObeLogsCompanion extends UpdateCompanion<ObeLog> {
     this.preMoodLevel = const Value.absent(),
     this.preEnergyLevel = const Value.absent(),
     this.intention = const Value.absent(),
+    this.sessionType = const Value.absent(),
     this.description = const Value.absent(),
     this.sensationsJson = const Value.absent(),
     this.hadVisuals = const Value.absent(),
@@ -6133,6 +6340,7 @@ class ObeLogsCompanion extends UpdateCompanion<ObeLog> {
     this.preMoodLevel = const Value.absent(),
     this.preEnergyLevel = const Value.absent(),
     this.intention = const Value.absent(),
+    this.sessionType = const Value.absent(),
     required String description,
     this.sensationsJson = const Value.absent(),
     this.hadVisuals = const Value.absent(),
@@ -6166,6 +6374,7 @@ class ObeLogsCompanion extends UpdateCompanion<ObeLog> {
     Expression<int>? preMoodLevel,
     Expression<int>? preEnergyLevel,
     Expression<String>? intention,
+    Expression<int>? sessionType,
     Expression<String>? description,
     Expression<String>? sensationsJson,
     Expression<bool>? hadVisuals,
@@ -6200,6 +6409,7 @@ class ObeLogsCompanion extends UpdateCompanion<ObeLog> {
       if (preMoodLevel != null) 'pre_mood_level': preMoodLevel,
       if (preEnergyLevel != null) 'pre_energy_level': preEnergyLevel,
       if (intention != null) 'intention': intention,
+      if (sessionType != null) 'session_type': sessionType,
       if (description != null) 'description': description,
       if (sensationsJson != null) 'sensations_json': sensationsJson,
       if (hadVisuals != null) 'had_visuals': hadVisuals,
@@ -6236,6 +6446,7 @@ class ObeLogsCompanion extends UpdateCompanion<ObeLog> {
       Value<int?>? preMoodLevel,
       Value<int?>? preEnergyLevel,
       Value<String?>? intention,
+      Value<int>? sessionType,
       Value<String>? description,
       Value<String?>? sensationsJson,
       Value<bool>? hadVisuals,
@@ -6268,6 +6479,7 @@ class ObeLogsCompanion extends UpdateCompanion<ObeLog> {
       preMoodLevel: preMoodLevel ?? this.preMoodLevel,
       preEnergyLevel: preEnergyLevel ?? this.preEnergyLevel,
       intention: intention ?? this.intention,
+      sessionType: sessionType ?? this.sessionType,
       description: description ?? this.description,
       sensationsJson: sensationsJson ?? this.sensationsJson,
       hadVisuals: hadVisuals ?? this.hadVisuals,
@@ -6325,6 +6537,9 @@ class ObeLogsCompanion extends UpdateCompanion<ObeLog> {
     }
     if (intention.present) {
       map['intention'] = Variable<String>(intention.value);
+    }
+    if (sessionType.present) {
+      map['session_type'] = Variable<int>(sessionType.value);
     }
     if (description.present) {
       map['description'] = Variable<String>(description.value);
@@ -6403,6 +6618,7 @@ class ObeLogsCompanion extends UpdateCompanion<ObeLog> {
           ..write('preMoodLevel: $preMoodLevel, ')
           ..write('preEnergyLevel: $preEnergyLevel, ')
           ..write('intention: $intention, ')
+          ..write('sessionType: $sessionType, ')
           ..write('description: $description, ')
           ..write('sensationsJson: $sensationsJson, ')
           ..write('hadVisuals: $hadVisuals, ')
@@ -7588,6 +7804,10 @@ typedef $$DailyRundownsTableCreateCompanionBuilder = DailyRundownsCompanion
   Value<bool> didVisualize,
   Value<bool> didBodyScan,
   Value<bool> didAffirmations,
+  Value<bool> ritualClear,
+  Value<bool> ritualTone,
+  Value<bool> ritualField,
+  Value<bool> ritualAffirmation,
   Value<String?> sleepIntention,
   Value<int?> bedtimeHour,
   Value<int?> bedtimeMinute,
@@ -7615,6 +7835,10 @@ typedef $$DailyRundownsTableUpdateCompanionBuilder = DailyRundownsCompanion
   Value<bool> didVisualize,
   Value<bool> didBodyScan,
   Value<bool> didAffirmations,
+  Value<bool> ritualClear,
+  Value<bool> ritualTone,
+  Value<bool> ritualField,
+  Value<bool> ritualAffirmation,
   Value<String?> sleepIntention,
   Value<int?> bedtimeHour,
   Value<int?> bedtimeMinute,
@@ -7740,6 +7964,19 @@ class $$DailyRundownsTableFilterComposer
 
   ColumnFilters<bool> get didAffirmations => $composableBuilder(
       column: $table.didAffirmations,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get ritualClear => $composableBuilder(
+      column: $table.ritualClear, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get ritualTone => $composableBuilder(
+      column: $table.ritualTone, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get ritualField => $composableBuilder(
+      column: $table.ritualField, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get ritualAffirmation => $composableBuilder(
+      column: $table.ritualAffirmation,
       builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get sleepIntention => $composableBuilder(
@@ -7893,6 +8130,19 @@ class $$DailyRundownsTableOrderingComposer
       column: $table.didAffirmations,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<bool> get ritualClear => $composableBuilder(
+      column: $table.ritualClear, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get ritualTone => $composableBuilder(
+      column: $table.ritualTone, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get ritualField => $composableBuilder(
+      column: $table.ritualField, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get ritualAffirmation => $composableBuilder(
+      column: $table.ritualAffirmation,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get sleepIntention => $composableBuilder(
       column: $table.sleepIntention,
       builder: (column) => ColumnOrderings(column));
@@ -7973,6 +8223,18 @@ class $$DailyRundownsTableAnnotationComposer
 
   GeneratedColumn<bool> get didAffirmations => $composableBuilder(
       column: $table.didAffirmations, builder: (column) => column);
+
+  GeneratedColumn<bool> get ritualClear => $composableBuilder(
+      column: $table.ritualClear, builder: (column) => column);
+
+  GeneratedColumn<bool> get ritualTone => $composableBuilder(
+      column: $table.ritualTone, builder: (column) => column);
+
+  GeneratedColumn<bool> get ritualField => $composableBuilder(
+      column: $table.ritualField, builder: (column) => column);
+
+  GeneratedColumn<bool> get ritualAffirmation => $composableBuilder(
+      column: $table.ritualAffirmation, builder: (column) => column);
 
   GeneratedColumn<String> get sleepIntention => $composableBuilder(
       column: $table.sleepIntention, builder: (column) => column);
@@ -8095,6 +8357,10 @@ class $$DailyRundownsTableTableManager extends RootTableManager<
             Value<bool> didVisualize = const Value.absent(),
             Value<bool> didBodyScan = const Value.absent(),
             Value<bool> didAffirmations = const Value.absent(),
+            Value<bool> ritualClear = const Value.absent(),
+            Value<bool> ritualTone = const Value.absent(),
+            Value<bool> ritualField = const Value.absent(),
+            Value<bool> ritualAffirmation = const Value.absent(),
             Value<String?> sleepIntention = const Value.absent(),
             Value<int?> bedtimeHour = const Value.absent(),
             Value<int?> bedtimeMinute = const Value.absent(),
@@ -8121,6 +8387,10 @@ class $$DailyRundownsTableTableManager extends RootTableManager<
             didVisualize: didVisualize,
             didBodyScan: didBodyScan,
             didAffirmations: didAffirmations,
+            ritualClear: ritualClear,
+            ritualTone: ritualTone,
+            ritualField: ritualField,
+            ritualAffirmation: ritualAffirmation,
             sleepIntention: sleepIntention,
             bedtimeHour: bedtimeHour,
             bedtimeMinute: bedtimeMinute,
@@ -8147,6 +8417,10 @@ class $$DailyRundownsTableTableManager extends RootTableManager<
             Value<bool> didVisualize = const Value.absent(),
             Value<bool> didBodyScan = const Value.absent(),
             Value<bool> didAffirmations = const Value.absent(),
+            Value<bool> ritualClear = const Value.absent(),
+            Value<bool> ritualTone = const Value.absent(),
+            Value<bool> ritualField = const Value.absent(),
+            Value<bool> ritualAffirmation = const Value.absent(),
             Value<String?> sleepIntention = const Value.absent(),
             Value<int?> bedtimeHour = const Value.absent(),
             Value<int?> bedtimeMinute = const Value.absent(),
@@ -8173,6 +8447,10 @@ class $$DailyRundownsTableTableManager extends RootTableManager<
             didVisualize: didVisualize,
             didBodyScan: didBodyScan,
             didAffirmations: didAffirmations,
+            ritualClear: ritualClear,
+            ritualTone: ritualTone,
+            ritualField: ritualField,
+            ritualAffirmation: ritualAffirmation,
             sleepIntention: sleepIntention,
             bedtimeHour: bedtimeHour,
             bedtimeMinute: bedtimeMinute,
@@ -11453,6 +11731,7 @@ typedef $$ObeLogsTableCreateCompanionBuilder = ObeLogsCompanion Function({
   Value<int?> preMoodLevel,
   Value<int?> preEnergyLevel,
   Value<String?> intention,
+  Value<int> sessionType,
   required String description,
   Value<String?> sensationsJson,
   Value<bool> hadVisuals,
@@ -11485,6 +11764,7 @@ typedef $$ObeLogsTableUpdateCompanionBuilder = ObeLogsCompanion Function({
   Value<int?> preMoodLevel,
   Value<int?> preEnergyLevel,
   Value<String?> intention,
+  Value<int> sessionType,
   Value<String> description,
   Value<String?> sensationsJson,
   Value<bool> hadVisuals,
@@ -11594,6 +11874,9 @@ class $$ObeLogsTableFilterComposer
 
   ColumnFilters<String> get intention => $composableBuilder(
       column: $table.intention, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get sessionType => $composableBuilder(
+      column: $table.sessionType, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get description => $composableBuilder(
       column: $table.description, builder: (column) => ColumnFilters(column));
@@ -11760,6 +12043,9 @@ class $$ObeLogsTableOrderingComposer
   ColumnOrderings<String> get intention => $composableBuilder(
       column: $table.intention, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get sessionType => $composableBuilder(
+      column: $table.sessionType, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get description => $composableBuilder(
       column: $table.description, builder: (column) => ColumnOrderings(column));
 
@@ -11902,6 +12188,9 @@ class $$ObeLogsTableAnnotationComposer
 
   GeneratedColumn<String> get intention =>
       $composableBuilder(column: $table.intention, builder: (column) => column);
+
+  GeneratedColumn<int> get sessionType => $composableBuilder(
+      column: $table.sessionType, builder: (column) => column);
 
   GeneratedColumn<String> get description => $composableBuilder(
       column: $table.description, builder: (column) => column);
@@ -12062,6 +12351,7 @@ class $$ObeLogsTableTableManager extends RootTableManager<
             Value<int?> preMoodLevel = const Value.absent(),
             Value<int?> preEnergyLevel = const Value.absent(),
             Value<String?> intention = const Value.absent(),
+            Value<int> sessionType = const Value.absent(),
             Value<String> description = const Value.absent(),
             Value<String?> sensationsJson = const Value.absent(),
             Value<bool> hadVisuals = const Value.absent(),
@@ -12094,6 +12384,7 @@ class $$ObeLogsTableTableManager extends RootTableManager<
             preMoodLevel: preMoodLevel,
             preEnergyLevel: preEnergyLevel,
             intention: intention,
+            sessionType: sessionType,
             description: description,
             sensationsJson: sensationsJson,
             hadVisuals: hadVisuals,
@@ -12126,6 +12417,7 @@ class $$ObeLogsTableTableManager extends RootTableManager<
             Value<int?> preMoodLevel = const Value.absent(),
             Value<int?> preEnergyLevel = const Value.absent(),
             Value<String?> intention = const Value.absent(),
+            Value<int> sessionType = const Value.absent(),
             required String description,
             Value<String?> sensationsJson = const Value.absent(),
             Value<bool> hadVisuals = const Value.absent(),
@@ -12158,6 +12450,7 @@ class $$ObeLogsTableTableManager extends RootTableManager<
             preMoodLevel: preMoodLevel,
             preEnergyLevel: preEnergyLevel,
             intention: intention,
+            sessionType: sessionType,
             description: description,
             sensationsJson: sensationsJson,
             hadVisuals: hadVisuals,

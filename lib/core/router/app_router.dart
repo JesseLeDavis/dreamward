@@ -8,9 +8,6 @@ import '../theme/app_colors.dart';
 import '../../features/calendar/presentation/bloc/calendar_bloc.dart';
 import '../../features/calendar/presentation/screens/calendar_day_screen.dart';
 import '../../features/calendar/presentation/screens/calendar_screen.dart';
-import '../../features/content/presentation/screens/content_item_detail_screen.dart';
-import '../../features/content/presentation/screens/explore_category_screen.dart';
-import '../../features/content/presentation/screens/explore_screen.dart';
 import '../../features/dream_journal/presentation/screens/character_new_screen.dart';
 import '../../features/dream_journal/presentation/screens/dream_edit_screen.dart';
 import '../../features/dream_journal/presentation/screens/dream_new_screen.dart';
@@ -32,7 +29,6 @@ final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final todayNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'today');
 final dreamsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'dreams');
 final obeNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'obe');
-final exploreNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'explore');
 final calendarNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'calendar');
 
 GoRouter createAppRouter() {
@@ -261,39 +257,6 @@ GoRouter createAppRouter() {
             ],
           ),
 
-          // --- EXPLORE TAB ---
-          StatefulShellBranch(
-            navigatorKey: exploreNavigatorKey,
-            routes: [
-              GoRoute(
-                path: '/explore',
-                name: AppRoutes.explore,
-                builder: (context, state) => const ExploreScreen(),
-                routes: [
-                  GoRoute(
-                    path: ':category',
-                    name: AppRoutes.exploreCategory,
-                    builder: (context, state) {
-                      final cat = state.pathParameters['category']!;
-                      return ExploreCategoryScreen(slug: cat);
-                    },
-                    routes: [
-                      GoRoute(
-                        path: ':itemId',
-                        name: AppRoutes.contentItem,
-                        builder: (context, state) {
-                          final id = int.parse(
-                              state.pathParameters['itemId']!);
-                          return ContentItemDetailScreen(itemId: id);
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-
           // --- CALENDAR TAB ---
           StatefulShellBranch(
             navigatorKey: calendarNavigatorKey,
@@ -413,11 +376,6 @@ class _ScaffoldWithBottomNav extends StatelessWidget {
                 label: 'OBE',
                 icon: Icons.blur_on_outlined,
                 selectedIcon: Icons.blur_on,
-              ),
-              _navDest(
-                label: 'EXPLORE',
-                icon: Icons.grid_view_outlined,
-                selectedIcon: Icons.grid_view,
               ),
               _navDest(
                 label: 'LOG',

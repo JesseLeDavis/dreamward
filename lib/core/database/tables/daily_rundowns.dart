@@ -35,6 +35,16 @@ class DailyRundowns extends Table {
   BoolColumn get didAffirmations =>
       boolean().withDefault(const Constant(false))();
 
+  // --- Pre-transmission protocol ritual ---
+  BoolColumn get ritualClear =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get ritualTone =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get ritualField =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get ritualAffirmation =>
+      boolean().withDefault(const Constant(false))();
+
   // --- Sleep intention (for lucid/OBE targeting) ---
   TextColumn get sleepIntention => text().nullable()();
   IntColumn get bedtimeHour => integer().nullable()(); // 0-23

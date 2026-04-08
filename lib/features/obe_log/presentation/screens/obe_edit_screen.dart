@@ -96,23 +96,10 @@ class _ObeEditBodyState extends State<_ObeEditBody> {
 
       final log = details.log;
 
-      // Parse session type prefix from description
-      final description = log.description;
-      int parsedType = 0;
-      String experienceText = description;
-      final prefixMatch = RegExp(r'^\[(DELIBERATE|AMBIENT|BRIDGE)\]\s*')
-          .firstMatch(description);
-      if (prefixMatch != null) {
-        final typeStr = prefixMatch.group(1)!;
-        parsedType = _typeLabels.indexOf(typeStr);
-        if (parsedType < 0) parsedType = 0;
-        experienceText = description.substring(prefixMatch.end);
-      }
-
       setState(() {
         _sessionDate = log.sessionDate;
         _entryState = log.entryState;
-        _sessionType = parsedType;
+        _sessionType = log.sessionType;
         _focusLevel = log.focusLevel;
         _onsetReached = log.onsetReached;
         _onsetIntensity = log.onsetIntensity;
@@ -120,7 +107,7 @@ class _ObeEditBodyState extends State<_ObeEditBody> {
 
         _techniqueController.text = log.techniqueNameOverride ?? '';
         _targetController.text = log.intention ?? '';
-        _experienceController.text = experienceText;
+        _experienceController.text = log.description;
 
         _loading = false;
       });
@@ -174,14 +161,13 @@ class _ObeEditBodyState extends State<_ObeEditBody> {
       );
       return;
     }
-    final sessionTypeLabel = _typeLabels[_sessionType];
-    final fullDescription = '[$sessionTypeLabel] $description';
 
     context.read<ObeEntryCubit>().updateObeLog(
           obeLogId: widget.obeId,
-          description: fullDescription,
+          description: description,
           sessionDate: _sessionDate,
           entryState: _entryState,
+          sessionType: _sessionType,
           techniqueNameOverride: _techniqueController.text.trim().isNotEmpty
               ? _techniqueController.text.trim()
               : null,

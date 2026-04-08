@@ -7,12 +7,25 @@ class DreamRepositoryImpl implements DreamRepository {
   final AppDatabase _db;
 
   @override
-  Future<List<Dream>> getDreams({int limit = 50, int offset = 0}) =>
-      _db.dreamDao.getDreams(limit: limit, offset: offset);
+  Future<List<Dream>> getDreams({int limit = 50, int offset = 0, String? searchQuery}) =>
+      _db.dreamDao.getDreams(limit: limit, offset: offset, searchQuery: searchQuery);
 
   @override
-  Future<int> insertDream(DreamsCompanion companion) =>
-      _db.dreamDao.insertDream(companion);
+  Future<int> insertDream(DreamsCompanion companion) async {
+    final date = companion.rundownDate;
+    if (date.present && date.value != null) {
+      await _ensureRundownExists(date.value!);
+    }
+    return _db.dreamDao.insertDream(companion);
+  }
+
+  Future<void> _ensureRundownExists(String dateId) async {
+    final existing = await _db.dailyRundownDao.getRundownByDate(dateId);
+    if (existing == null) {
+      await _db.dailyRundownDao
+          .upsertRundown(DailyRundownsCompanion.insert(id: dateId));
+    }
+  }
 
   @override
   Future<void> archiveDream(int id) => _db.dreamDao.archiveDream(id);
@@ -34,8 +47,13 @@ class DreamRepositoryImpl implements DreamRepository {
       _db.dreamDao.getDreamsByCharacter(characterId);
 
   @override
-  Future<void> updateDream(DreamsCompanion companion) =>
-      _db.dreamDao.updateDream(companion);
+  Future<void> updateDream(DreamsCompanion companion) async {
+    final date = companion.rundownDate;
+    if (date.present && date.value != null) {
+      await _ensureRundownExists(date.value!);
+    }
+    await _db.dreamDao.updateDream(companion);
+  }
 
   @override
   Future<void> setCharactersForDream(int dreamId, List<int> characterIds) async {

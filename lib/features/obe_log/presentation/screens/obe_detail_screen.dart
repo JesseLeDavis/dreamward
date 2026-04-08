@@ -31,8 +31,7 @@ class _ObeDetailScreenState extends State<ObeDetailScreen> {
     AppColors.green,
   ];
 
-  // Session type prefix patterns stored by obe_new_screen
-  static const _typePrefixes = ['[DELIBERATE]', '[AMBIENT]', '[BRIDGE]'];
+  static const _typeLabels = ['DELIBERATE', 'AMBIENT', 'BRIDGE'];
   static const _typeColors = [
     AppColors.amber,
     AppColors.green,
@@ -70,17 +69,9 @@ class _ObeDetailScreenState extends State<ObeDetailScreen> {
     }
   }
 
-  /// Returns (typeLabel, typeColor, bodyText) by parsing the description prefix.
-  (String, Color, String) _parseDescription(String raw) {
-    for (int i = 0; i < _typePrefixes.length; i++) {
-      final prefix = _typePrefixes[i];
-      if (raw.startsWith(prefix)) {
-        final body = raw.substring(prefix.length).trimLeft();
-        final label = prefix.replaceAll('[', '').replaceAll(']', '');
-        return (label, _typeColors[i], body);
-      }
-    }
-    return ('DELIBERATE', AppColors.amber, raw);
+  (String, Color) _sessionTypeMeta(int sessionType) {
+    final idx = sessionType.clamp(0, _typeLabels.length - 1);
+    return (_typeLabels[idx], _typeColors[idx]);
   }
 
   @override
@@ -127,8 +118,8 @@ class _ObeDetailScreenState extends State<ObeDetailScreen> {
     final outcomeLabel = _outcomeLabels[log.entryState.clamp(0, 2)];
     final outcomeColor = _outcomeColors[log.entryState.clamp(0, 2)];
 
-    final (typeLabel, typeColor, bodyText) =
-        _parseDescription(log.description);
+    final (typeLabel, typeColor) = _sessionTypeMeta(log.sessionType);
+    final bodyText = log.description;
 
     final hasTechnique = (log.techniqueNameOverride ?? '').isNotEmpty;
     final hasTarget = (log.intention ?? '').isNotEmpty;

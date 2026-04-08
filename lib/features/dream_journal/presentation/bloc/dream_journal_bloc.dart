@@ -27,6 +27,11 @@ class FilterByCharacter extends DreamJournalEvent {
 
 class ClearDreamFilter extends DreamJournalEvent {}
 
+class SearchDreams extends DreamJournalEvent {
+  SearchDreams(this.query);
+  final String query;
+}
+
 // ---------------------------------------------------------------------------
 // States
 // ---------------------------------------------------------------------------
@@ -44,14 +49,17 @@ class DreamJournalLoaded extends DreamJournalState {
     this.activeTagName,
     this.activeCharacterId,
     this.activeCharacterName,
+    this.activeSearchQuery,
   });
   final List<Dream> dreams;
   final int? activeTagId;
   final String? activeTagName;
   final int? activeCharacterId;
   final String? activeCharacterName;
+  final String? activeSearchQuery;
 
   bool get isFiltered => activeTagId != null || activeCharacterId != null;
+  bool get isSearching => activeSearchQuery != null && activeSearchQuery!.isNotEmpty;
 }
 
 class DreamJournalError extends DreamJournalState {
@@ -72,6 +80,7 @@ class DreamJournalBloc extends Bloc<DreamJournalEvent, DreamJournalState> {
     on<FilterByTag>(_onFilterByTag);
     on<FilterByCharacter>(_onFilterByCharacter);
     on<ClearDreamFilter>(_onClearFilter);
+    on<SearchDreams>(_onSearchDreams);
   }
 
   final DreamRepository _repository;
@@ -93,16 +102,22 @@ class DreamJournalBloc extends Bloc<DreamJournalEvent, DreamJournalState> {
     DreamSaved event,
     Emitter<DreamJournalState> emit,
   ) async {
-    // Re-load with current filter if one is active.
+    // Re-load with current filter/search if one is active.
     final current = state;
-    if (current is DreamJournalLoaded && current.isFiltered) {
-      if (current.activeTagId != null) {
-        add(FilterByTag(current.activeTagId!, current.activeTagName!));
-      } else if (current.activeCharacterId != null) {
-        add(FilterByCharacter(
-            current.activeCharacterId!, current.activeCharacterName!));
+    if (current is DreamJournalLoaded) {
+      if (current.isFiltered) {
+        if (current.activeTagId != null) {
+          add(FilterByTag(current.activeTagId!, current.activeTagName!));
+        } else if (current.activeCharacterId != null) {
+          add(FilterByCharacter(
+              current.activeCharacterId!, current.activeCharacterName!));
+        }
+        return;
       }
-      return;
+      if (current.isSearching) {
+        add(SearchDreams(current.activeSearchQuery!));
+        return;
+      }
     }
     emit(DreamJournalLoading());
     try {
@@ -155,6 +170,24 @@ class DreamJournalBloc extends Bloc<DreamJournalEvent, DreamJournalState> {
     try {
       final dreams = await _repository.getDreams();
       emit(DreamJournalLoaded(dreams));
+    } catch (e) {
+      emit(DreamJournalError(e.toString()));
+    }
+  }
+
+  Future<void> _onSearchDreams(
+    SearchDreams event,
+    Emitter<DreamJournalState> emit,
+  ) async {
+    try {
+      final query = event.query.trim();
+      if (query.isEmpty) {
+        final dreams = await _repository.getDreams();
+        emit(DreamJournalLoaded(dreams));
+        return;
+      }
+      final dreams = await _repository.getDreams(searchQuery: query);
+      emit(DreamJournalLoaded(dreams, activeSearchQuery: query));
     } catch (e) {
       emit(DreamJournalError(e.toString()));
     }

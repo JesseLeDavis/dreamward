@@ -57,7 +57,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -79,6 +79,29 @@ class AppDatabase extends _$AppDatabase {
                   'ALTER TABLE obe_logs ADD COLUMN onset_intensity INTEGER');
               await m.database.customStatement(
                   'ALTER TABLE obe_logs ADD COLUMN field_type INTEGER');
+            }
+            if (from < 3) {
+              // Add session_type column to obe_logs
+              await m.database.customStatement(
+                  'ALTER TABLE obe_logs ADD COLUMN session_type INTEGER NOT NULL DEFAULT 0');
+              // Migrate existing data: parse [TYPE] prefix from description
+              await m.database.customStatement(
+                  "UPDATE obe_logs SET session_type = 1 WHERE description LIKE '[AMBIENT]%'");
+              await m.database.customStatement(
+                  "UPDATE obe_logs SET session_type = 2 WHERE description LIKE '[BRIDGE]%'");
+              // Strip [TYPE] prefix from description
+              await m.database.customStatement(
+                  "UPDATE obe_logs SET description = LTRIM(SUBSTR(description, INSTR(description, '] ') + 2)) WHERE description LIKE '[DELIBERATE] %' OR description LIKE '[AMBIENT] %' OR description LIKE '[BRIDGE] %'");
+
+              // Add ritual columns to daily_rundowns
+              await m.database.customStatement(
+                  'ALTER TABLE daily_rundowns ADD COLUMN ritual_clear INTEGER NOT NULL DEFAULT 0');
+              await m.database.customStatement(
+                  'ALTER TABLE daily_rundowns ADD COLUMN ritual_tone INTEGER NOT NULL DEFAULT 0');
+              await m.database.customStatement(
+                  'ALTER TABLE daily_rundowns ADD COLUMN ritual_field INTEGER NOT NULL DEFAULT 0');
+              await m.database.customStatement(
+                  'ALTER TABLE daily_rundowns ADD COLUMN ritual_affirmation INTEGER NOT NULL DEFAULT 0');
             }
           });
         },

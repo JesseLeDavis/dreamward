@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
@@ -46,19 +47,48 @@ class _TodayScreenState extends State<TodayScreen> {
   Dream? _lastDream;
   ObeLog? _lastObe;
 
+  final _db = GetIt.instance<AppDatabase>();
+
   @override
   void initState() {
     super.initState();
+    _loadRundown();
     _loadStats();
   }
 
-  Future<void> _loadStats() async {
-    final db = GetIt.instance<AppDatabase>();
+  Future<void> _loadRundown() async {
+    final rundown = await _db.dailyRundownDao.getRundownByDate(widget.date);
+    if (rundown == null || !mounted) return;
+    setState(() {
+      _ritual['clear'] = rundown.ritualClear;
+      _ritual['tone'] = rundown.ritualTone;
+      _ritual['field'] = rundown.ritualField;
+      _ritual['affirmation'] = rundown.ritualAffirmation;
+      _intention = rundown.sleepIntention ?? '';
+      if (rundown.affirmationOfDay != null) {
+        final idx = _affirmations.indexOf(rundown.affirmationOfDay!);
+        if (idx >= 0) _affirmationIndex = idx;
+      }
+    });
+  }
 
-    // Current month OBE count — count all non-archived OBE logs this month
+  Future<void> _persistRundown() async {
+    await _db.dailyRundownDao.upsertRundown(DailyRundownsCompanion(
+      id: Value(widget.date),
+      ritualClear: Value(_ritual['clear'] ?? false),
+      ritualTone: Value(_ritual['tone'] ?? false),
+      ritualField: Value(_ritual['field'] ?? false),
+      ritualAffirmation: Value(_ritual['affirmation'] ?? false),
+      sleepIntention: Value(_intention.trim().isNotEmpty ? _intention.trim() : null),
+      affirmationOfDay: Value(_affirmations[_affirmationIndex]),
+    ));
+  }
+
+  Future<void> _loadStats() async {
+    // Current month OBE count
     final now = DateTime.now();
     int monthCount = 0;
-    final allObes = await db.obeDao.getObeLogs(limit: 200);
+    final allObes = await _db.obeDao.getObeLogs(limit: 200);
     final monthPrefix =
         '${now.year}-${now.month.toString().padLeft(2, '0')}';
     for (final obe in allObes) {
@@ -68,11 +98,11 @@ class _TodayScreenState extends State<TodayScreen> {
     }
 
     // Most recent OBE
-    final recentObes = await db.obeDao.getRecentObeLogs(1);
+    final recentObes = await _db.obeDao.getRecentObeLogs(1);
     final latestObe = recentObes.isNotEmpty ? recentObes.first : null;
 
     // Most recent dream
-    final recentDreams = await db.dreamDao.getRecentDreams(1);
+    final recentDreams = await _db.dreamDao.getRecentDreams(1);
     final latestDream = recentDreams.isNotEmpty ? recentDreams.first : null;
 
     // Streak: consecutive days backward from today with at least one entry
@@ -81,8 +111,8 @@ class _TodayScreenState extends State<TodayScreen> {
       final day = now.subtract(Duration(days: i));
       final dateStr =
           '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
-      final dreams = await db.dreamDao.getDreamsByDate(dateStr);
-      final obes = await db.obeDao.getObeLogsByDate(dateStr);
+      final dreams = await _db.dreamDao.getDreamsByDate(dateStr);
+      final obes = await _db.obeDao.getObeLogsByDate(dateStr);
       if (dreams.isEmpty && obes.isEmpty) break;
       streak++;
     }
@@ -110,27 +140,33 @@ class _TodayScreenState extends State<TodayScreen> {
     'affirmation': false,
   };
 
-  // Intention is managed inside _IntentionSection but we need it here
-  // to compute the auto-check state and echo it in the ritual.
   String _intention = '';
 
   bool get _intentionSet => _intention.trim().isNotEmpty;
   int get _manualComplete => _ritual.values.where((v) => v).length;
 
-  void _cycleAffirmation() =>
-      setState(() => _affirmationIndex = (_affirmationIndex + 1) % _affirmations.length);
+  void _cycleAffirmation() {
+    setState(() => _affirmationIndex = (_affirmationIndex + 1) % _affirmations.length);
+    _persistRundown();
+  }
 
-  void _toggleRitual(String key) =>
-      setState(() => _ritual[key] = !(_ritual[key] ?? false));
+  void _toggleRitual(String key) {
+    setState(() => _ritual[key] = !(_ritual[key] ?? false));
+    _persistRundown();
+  }
 
-  void _resetRitual() => setState(() => _ritual.updateAll((_, __) => false));
+  void _resetRitual() {
+    setState(() => _ritual.updateAll((_, __) => false));
+    _persistRundown();
+  }
 
-  void _onIntentionChanged(String val) => setState(() => _intention = val);
+  void _onIntentionChanged(String val) {
+    setState(() => _intention = val);
+    _persistRundown();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // TODO(bloc): load sleep hours from rundown for widget.date
-
     return Scaffold(
       backgroundColor: AppColors.backgroundBase,
       appBar: _TodayAppBar(date: widget.date),
@@ -140,14 +176,15 @@ class _TodayScreenState extends State<TodayScreen> {
           vertical: AppSpacing.screenV,
         ),
         children: [
-          const _SleepStat(hours: null),
-          const SizedBox(height: AppSpacing.sectionGap),
           _AffirmationSection(
             affirmation: _affirmations[_affirmationIndex],
             onCycle: _cycleAffirmation,
           ),
           const SizedBox(height: AppSpacing.sectionGap),
-          _IntentionSection(onChanged: _onIntentionChanged),
+          _IntentionSection(
+            onChanged: _onIntentionChanged,
+            initialValue: _intention,
+          ),
           const SizedBox(height: AppSpacing.sectionGap),
           _LastSessionSection(
             currentDate: widget.date,
@@ -222,48 +259,6 @@ class _TodayAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Sleep stat — single wide box
-// ---------------------------------------------------------------------------
-
-class _SleepStat extends StatelessWidget {
-  const _SleepStat({this.hours});
-
-  final double? hours;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        vertical: 10,
-        horizontal: AppSpacing.cardPad,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundSurface,
-        border: Border.all(color: AppColors.borderNormal),
-      ),
-      child: Row(
-        children: [
-          Text('SLEEP LAST NIGHT', style: AppTypography.label),
-          const Spacer(),
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: hours != null ? hours.toString() : '---',
-                  style: AppTypography.displayAmber,
-                ),
-                if (hours != null)
-                  TextSpan(text: ' HR', style: AppTypography.timestamp),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Daily affirmation
 // ---------------------------------------------------------------------------
 
@@ -299,9 +294,13 @@ class _AffirmationSection extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _IntentionSection extends StatefulWidget {
-  const _IntentionSection({required this.onChanged});
+  const _IntentionSection({
+    required this.onChanged,
+    this.initialValue = '',
+  });
 
   final ValueChanged<String> onChanged;
+  final String initialValue;
 
   @override
   State<_IntentionSection> createState() => _IntentionSectionState();
@@ -310,6 +309,20 @@ class _IntentionSection extends StatefulWidget {
 class _IntentionSectionState extends State<_IntentionSection> {
   final _controller = TextEditingController();
   bool _editing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.text = widget.initialValue;
+  }
+
+  @override
+  void didUpdateWidget(_IntentionSection old) {
+    super.didUpdateWidget(old);
+    if (old.initialValue != widget.initialValue && !_editing) {
+      _controller.text = widget.initialValue;
+    }
+  }
 
   @override
   void dispose() {
@@ -435,12 +448,7 @@ class _LastSessionSection extends StatelessWidget {
 
   static const _outcomeLabels = ['ATTEMPTED', 'PARTIAL', 'CLEAN'];
 
-  static String _parseObeType(String description) {
-    if (description.startsWith('[DELIBERATE]')) return 'DELIBERATE';
-    if (description.startsWith('[AMBIENT]')) return 'AMBIENT';
-    if (description.startsWith('[BRIDGE]')) return 'BRIDGE';
-    return 'DELIBERATE';
-  }
+  static const _sessionTypeLabels = ['DELIBERATE', 'AMBIENT', 'BRIDGE'];
 
   static String _formatDate(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -509,7 +517,7 @@ class _LastSessionSection extends StatelessWidget {
             Row(
               children: [
                 DataTag(
-                  label: _parseObeType(lastObe!.description),
+                  label: _sessionTypeLabels[lastObe!.sessionType.clamp(0, 2)],
                   color: AppColors.amber,
                 ),
                 const SizedBox(width: 6),

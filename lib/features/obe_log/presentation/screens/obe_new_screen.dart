@@ -127,13 +127,12 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
       );
       return;
     }
-    final sessionTypeLabel = _typeLabels[_sessionType];
-    final fullDescription = '[$sessionTypeLabel] $description';
 
     context.read<ObeEntryCubit>().saveObeLog(
-          description: fullDescription,
+          description: description,
           sessionDate: _sessionDate,
           entryState: _entryState,
+          sessionType: _sessionType,
           techniqueNameOverride: _techniqueController.text.trim().isNotEmpty
               ? _techniqueController.text.trim()
               : null,

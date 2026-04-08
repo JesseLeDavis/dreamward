@@ -29,6 +29,10 @@ class ObeLogs extends Table {
   IntColumn get preEnergyLevel => integer().nullable()();
   TextColumn get intention => text().nullable()();
 
+  /// Session type: 0=DELIBERATE, 1=AMBIENT, 2=BRIDGE. Defaults to DELIBERATE.
+  IntColumn get sessionType =>
+      integer().withDefault(const Constant(0))();
+
   // --- The experience ---
   TextColumn get description => text()();
 
