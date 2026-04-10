@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/database/app_database.dart';
 import '../../../../core/database/daos/dream_dao.dart';
+import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -96,6 +98,19 @@ class _DreamDetailScreenState extends State<DreamDetailScreen> {
         automaticallyImplyLeading: true,
         iconTheme: const IconThemeData(color: AppColors.textSecondary, size: 18),
         title: Text('DREAM LOG', style: AppTypography.heading),
+        actions: [
+          if (!_loading && _data != null)
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.amber),
+              onPressed: () async {
+                await context.pushNamed(
+                  AppRoutes.dreamEdit,
+                  pathParameters: {'dreamId': widget.dreamId.toString()},
+                );
+                _load();
+              },
+            ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(height: 1, color: AppColors.borderSubtle),
