@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/field_section.dart';
+import '../../../../core/widgets/terminal_pickers.dart';
 import '../../../dream_journal/presentation/bloc/dream_journal_bloc.dart';
 import '../../../obe_log/presentation/bloc/obe_log_bloc.dart';
 
@@ -102,31 +103,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     TimeOfDay initial,
     ValueChanged<TimeOfDay> onPicked,
   ) async {
-    final picked = await showTimePicker(
+    final picked = await showTerminalTimePicker(
       context: context,
       initialTime: initial,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            timePickerTheme: TimePickerThemeData(
-              backgroundColor: AppColors.backgroundRaised,
-              hourMinuteTextColor: AppColors.amber,
-              dayPeriodTextColor: AppColors.textSecondary,
-              dialHandColor: AppColors.amber,
-              dialBackgroundColor: AppColors.backgroundSurface,
-              entryModeIconColor: AppColors.textSecondary,
-              helpTextStyle: AppTypography.label,
-            ),
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.amber,
-                textStyle: AppTypography.label,
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
     if (picked != null) onPicked(picked);
   }

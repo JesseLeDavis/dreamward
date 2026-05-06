@@ -43,7 +43,6 @@ class _TodayScreenState extends State<TodayScreen> {
   // Stats
   int _sessionsThisMonth = 0;
   String _lastObeDate = '--';
-  int _activeSequence = 0;
   Dream? _lastDream;
   ObeLog? _lastObe;
 
@@ -105,25 +104,12 @@ class _TodayScreenState extends State<TodayScreen> {
     final recentDreams = await _db.dreamDao.getRecentDreams(1);
     final latestDream = recentDreams.isNotEmpty ? recentDreams.first : null;
 
-    // Streak: consecutive days backward from today with at least one entry
-    int streak = 0;
-    for (int i = 0; i < 30; i++) {
-      final day = now.subtract(Duration(days: i));
-      final dateStr =
-          '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
-      final dreams = await _db.dreamDao.getDreamsByDate(dateStr);
-      final obes = await _db.obeDao.getObeLogsByDate(dateStr);
-      if (dreams.isEmpty && obes.isEmpty) break;
-      streak++;
-    }
-
     if (!mounted) return;
     setState(() {
       _sessionsThisMonth = monthCount;
       _lastObeDate = latestObe != null
           ? _formatDate(latestObe.sessionDate)
           : '--';
-      _activeSequence = streak;
       _lastDream = latestDream;
       _lastObe = latestObe;
     });
@@ -176,20 +162,9 @@ class _TodayScreenState extends State<TodayScreen> {
           vertical: AppSpacing.screenV,
         ),
         children: [
-          _AffirmationSection(
-            affirmation: _affirmations[_affirmationIndex],
-            onCycle: _cycleAffirmation,
-          ),
-          const SizedBox(height: AppSpacing.sectionGap),
           _IntentionSection(
             onChanged: _onIntentionChanged,
             initialValue: _intention,
-          ),
-          const SizedBox(height: AppSpacing.sectionGap),
-          _LastSessionSection(
-            currentDate: widget.date,
-            lastDream: _lastDream,
-            lastObe: _lastObe,
           ),
           const SizedBox(height: AppSpacing.sectionGap),
           _RitualSection(
@@ -201,10 +176,20 @@ class _TodayScreenState extends State<TodayScreen> {
             onReset: _resetRitual,
           ),
           const SizedBox(height: AppSpacing.sectionGap),
+          _LastSessionSection(
+            currentDate: widget.date,
+            lastDream: _lastDream,
+            lastObe: _lastObe,
+          ),
+          const SizedBox(height: AppSpacing.sectionGap),
           _StatsStrip(
             sessionsThisMonth: _sessionsThisMonth,
             lastObeDate: _lastObeDate,
-            activeSequence: _activeSequence,
+          ),
+          const SizedBox(height: AppSpacing.sectionGap),
+          _AffirmationSection(
+            affirmation: _affirmations[_affirmationIndex],
+            onCycle: _cycleAffirmation,
           ),
           const SizedBox(height: AppSpacing.xxl),
         ],
@@ -763,12 +748,10 @@ class _StatsStrip extends StatelessWidget {
   const _StatsStrip({
     required this.sessionsThisMonth,
     required this.lastObeDate,
-    required this.activeSequence,
   });
 
   final int sessionsThisMonth;
   final String lastObeDate;
-  final int activeSequence;
 
   @override
   Widget build(BuildContext context) {
@@ -793,15 +776,6 @@ class _StatsStrip extends StatelessWidget {
             child: ColoredBox(color: AppColors.borderNormal),
           ),
           _StatCol(label: 'LAST OBE', value: lastObeDate),
-          const SizedBox(
-            width: 1,
-            height: 32,
-            child: ColoredBox(color: AppColors.borderNormal),
-          ),
-          _StatCol(
-            label: 'ACTIVE SEQUENCE',
-            value: activeSequence > 0 ? '${activeSequence}d' : '--',
-          ),
         ],
       ),
     );

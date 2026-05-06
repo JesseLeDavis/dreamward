@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/signal_loader.dart';
 import '../bloc/entity_cubit.dart';
 
 class CharacterNewScreen extends StatelessWidget {
@@ -155,14 +156,7 @@ class _CharacterNewBodyState extends State<_CharacterNewBody> {
         TextButton(
           onPressed: _saving ? null : _save,
           child: _saving
-              ? const SizedBox(
-                  width: 14,
-                  height: 14,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 1.5,
-                    color: AppColors.amber,
-                  ),
-                )
+              ? const MiniSignalLoader()
               : Text(
                   'SAVE',
                   style: AppTypography.label.copyWith(color: AppColors.amber),

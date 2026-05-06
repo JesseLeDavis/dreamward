@@ -11,6 +11,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/data_tag.dart';
 import '../../../../core/widgets/signal_loader.dart';
+import '../../../../core/widgets/signal_search_field.dart';
 import '../bloc/obe_log_bloc.dart';
 
 class ObeScreen extends StatefulWidget {
@@ -23,6 +24,7 @@ class ObeScreen extends StatefulWidget {
 class _ObeScreenState extends State<ObeScreen> {
   String _typeFilter = 'ALL';
   String _stateFilter = 'ALL';
+  bool _filtersExpanded = false;
   String _searchQuery = '';
   final _searchController = TextEditingController();
   Timer? _debounce;
@@ -59,12 +61,17 @@ class _ObeScreenState extends State<ObeScreen> {
       appBar: _ObeAppBar(
         typeFilter: _typeFilter,
         stateFilter: _stateFilter,
+        expanded: _filtersExpanded ||
+            _typeFilter != 'ALL' ||
+            _stateFilter != 'ALL',
         onTypeFilter: (v) => setState(() => _typeFilter = v),
         onStateFilter: (v) => setState(() => _stateFilter = v),
+        onToggleExpanded: () =>
+            setState(() => _filtersExpanded = !_filtersExpanded),
       ),
       body: Column(
         children: [
-          _SearchField(
+          SignalSearchField(
             controller: _searchController,
             onChanged: _onSearchChanged,
             onClear: _clearSearch,
@@ -91,18 +98,22 @@ class _ObeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const _ObeAppBar({
     required this.typeFilter,
     required this.stateFilter,
+    required this.expanded,
     required this.onTypeFilter,
     required this.onStateFilter,
+    required this.onToggleExpanded,
   });
 
   final String typeFilter;
   final String stateFilter;
+  final bool expanded;
   final ValueChanged<String> onTypeFilter;
   final ValueChanged<String> onStateFilter;
+  final VoidCallback onToggleExpanded;
 
-  // 48 toolbar + 88 filter bar (1 top border + 86 content + 1 bottom border)
+  // 48 toolbar + (88 expanded | 38 collapsed) filter bar
   @override
-  Size get preferredSize => const Size.fromHeight(136);
+  Size get preferredSize => Size.fromHeight(expanded ? 136 : 86);
 
   @override
   Widget build(BuildContext context) {
@@ -123,17 +134,20 @@ class _ObeAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ],
       bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(72),
+        preferredSize: Size.fromHeight(expanded ? 72 : 38),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(height: 1, color: AppColors.borderSubtle),
-            _FilterBar(
-              typeFilter: typeFilter,
-              stateFilter: stateFilter,
-              onTypeFilter: onTypeFilter,
-              onStateFilter: onStateFilter,
-            ),
+            if (expanded)
+              _FilterBar(
+                typeFilter: typeFilter,
+                stateFilter: stateFilter,
+                onTypeFilter: onTypeFilter,
+                onStateFilter: onStateFilter,
+              )
+            else
+              _CollapsedFilterBar(onTap: onToggleExpanded),
             Container(height: 1, color: AppColors.borderSubtle),
           ],
         ),
@@ -184,6 +198,36 @@ class _FilterBar extends StatelessWidget {
             onSelect: onStateFilter,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CollapsedFilterBar extends StatelessWidget {
+  const _CollapsedFilterBar({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        height: 36,
+        color: AppColors.backgroundDeep,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
+        child: Row(
+          children: [
+            Text('FILTERS', style: AppTypography.label),
+            const SizedBox(width: 10),
+            Text('· ALL',
+                style: AppTypography.label
+                    .copyWith(color: AppColors.textSecondary)),
+            const Spacer(),
+            Text('EXPAND ▾', style: AppTypography.labelAmber),
+          ],
+        ),
       ),
     );
   }
@@ -284,7 +328,7 @@ class _ObeList extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.xl),
               child: Text(
                 'ERROR: ${state.message}',
-                style: AppTypography.label.copyWith(color: AppColors.textMuted),
+                style: AppTypography.label.copyWith(color: AppColors.textSecondary),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -550,7 +594,7 @@ class _FocusLevelBar extends StatelessWidget {
     final label = _labels[level.clamp(0, 4)];
     final labelStyle = level > 0
         ? AppTypography.labelAmber
-        : AppTypography.label.copyWith(color: AppColors.textMuted);
+        : AppTypography.label.copyWith(color: AppColors.textSecondary);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -586,7 +630,7 @@ class _VibrationIndicator extends StatelessWidget {
     if (!reached) {
       return Text(
         'NO ONSET',
-        style: AppTypography.label.copyWith(color: AppColors.textMuted),
+        style: AppTypography.label.copyWith(color: AppColors.textSecondary),
       );
     }
 
@@ -599,7 +643,7 @@ class _VibrationIndicator extends StatelessWidget {
       children: [
         Text(
           'ONSET: ',
-          style: AppTypography.label.copyWith(color: AppColors.textMuted),
+          style: AppTypography.label.copyWith(color: AppColors.textSecondary),
         ),
         if (intensity != null)
           Text(
@@ -742,73 +786,6 @@ class _FocusRow extends StatelessWidget {
 // Search field
 // ---------------------------------------------------------------------------
 
-class _SearchField extends StatelessWidget {
-  const _SearchField({
-    required this.controller,
-    required this.onChanged,
-    required this.onClear,
-    required this.hintText,
-  });
-
-  final TextEditingController controller;
-  final ValueChanged<String> onChanged;
-  final VoidCallback onClear;
-  final String hintText;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.screenH,
-        vertical: 8,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.backgroundDeep,
-        border: Border(bottom: BorderSide(color: AppColors.borderSubtle)),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.backgroundDeep,
-          border: Border.all(color: AppColors.borderNormal),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(
-          children: [
-            const Icon(Icons.search, size: 14, color: AppColors.textMuted),
-            const SizedBox(width: 6),
-            Expanded(
-              child: TextField(
-                controller: controller,
-                onChanged: onChanged,
-                style: AppTypography.body,
-                decoration: InputDecoration(
-                  hintText: hintText,
-                  hintStyle: AppTypography.hint,
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                ),
-              ),
-            ),
-            ValueListenableBuilder<TextEditingValue>(
-              valueListenable: controller,
-              builder: (_, value, __) {
-                if (value.text.isEmpty) return const SizedBox.shrink();
-                return GestureDetector(
-                  onTap: onClear,
-                  child: const Padding(
-                    padding: EdgeInsets.all(4),
-                    child: Icon(Icons.close, size: 14, color: AppColors.textMuted),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 
 

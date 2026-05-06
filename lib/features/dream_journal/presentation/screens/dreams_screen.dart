@@ -11,6 +11,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/data_tag.dart';
 import '../../../../core/widgets/signal_loader.dart';
+import '../../../../core/widgets/signal_search_field.dart';
 import '../bloc/dream_journal_bloc.dart';
 import '../bloc/entity_cubit.dart';
 import '../widgets/character_picker_sheet.dart';
@@ -69,7 +70,7 @@ class _DreamsScreenState extends State<DreamsScreen> {
         body: Column(
           children: [
             const _FilterBar(),
-            _SearchField(
+            SignalSearchField(
               controller: _searchController,
               onChanged: _onSearchChanged,
               onClear: _clearSearch,
@@ -336,36 +337,7 @@ class _DreamList extends StatelessWidget {
           }
 
           if (dreams.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'CHANNEL OPEN.',
-                      style: AppTypography.label,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'NO TRANSMISSIONS ON RECORD.',
-                      style: AppTypography.label,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(
-                      'Signal is present. Recall what you find there.',
-                      style: AppTypography.signalText,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    OutlinedButton(
-                      onPressed: () => context.pushNamed(AppRoutes.dreamNew),
-                      child: const Text('+ OPEN FIRST LOG ENTRY'),
-                    ),
-                  ],
-                ),
-              ),
-            );
+            return _DreamsEmptyState();
           }
 
           return ListView.separated(
@@ -540,73 +512,113 @@ class _ClarityBar extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Search field
+// Empty state — teaches dream type vocabulary
 // ---------------------------------------------------------------------------
 
-class _SearchField extends StatelessWidget {
-  const _SearchField({
-    required this.controller,
-    required this.onChanged,
-    required this.onClear,
-    required this.hintText,
-  });
-
-  final TextEditingController controller;
-  final ValueChanged<String> onChanged;
-  final VoidCallback onClear;
-  final String hintText;
-
+class _DreamsEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.screenH,
-        vertical: 8,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.backgroundDeep,
-        border: Border(bottom: BorderSide(color: AppColors.borderSubtle)),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.backgroundDeep,
-          border: Border.all(color: AppColors.borderNormal),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(
-          children: [
-            const Icon(Icons.search, size: 14, color: AppColors.textMuted),
-            const SizedBox(width: 6),
-            Expanded(
-              child: TextField(
-                controller: controller,
-                onChanged: onChanged,
-                style: AppTypography.body,
-                decoration: InputDecoration(
-                  hintText: hintText,
-                  hintStyle: AppTypography.hint,
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.screenH),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.backgroundSurface,
+            border: Border.all(color: AppColors.borderStrong),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.cardPad,
+                  vertical: 8,
+                ),
+                decoration: const BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: AppColors.borderSubtle),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Text('DREAM LOG', style: AppTypography.label),
+                    const Spacer(),
+                    Text(
+                      'NO TRANSMISSIONS ON RECORD.',
+                      style: AppTypography.label
+                          .copyWith(color: AppColors.textSecondary),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            ValueListenableBuilder<TextEditingValue>(
-              valueListenable: controller,
-              builder: (_, value, __) {
-                if (value.text.isEmpty) return const SizedBox.shrink();
-                return GestureDetector(
-                  onTap: onClear,
-                  child: const Padding(
-                    padding: EdgeInsets.all(4),
-                    child: Icon(Icons.close, size: 14, color: AppColors.textMuted),
-                  ),
-                );
-              },
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('DREAM TYPES', style: AppTypography.label),
+                    const SizedBox(height: 4),
+                    const Divider(height: 1, color: AppColors.borderSubtle),
+                    const SizedBox(height: 10),
+                    _DreamTypeRow('NORMAL', 'BASELINE NIGHT IMAGERY'),
+                    _DreamTypeRow('LUCID', 'AWARE WITHIN THE DREAM'),
+                    _DreamTypeRow('RECURRING', 'REPEATED MOTIF OR SCENE'),
+                    _DreamTypeRow('NIGHTMARE', 'DISTRESS / FEAR SIGNAL'),
+                    const SizedBox(height: AppSpacing.lg),
+                    Text('CHANNEL OPEN.', style: AppTypography.label),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Signal is present. Recall what you find there.',
+                      style: AppTypography.signalText,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () =>
+                            context.pushNamed(AppRoutes.dreamNew),
+                        child: const Text('+ OPEN FIRST LOG ENTRY'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+class _DreamTypeRow extends StatelessWidget {
+  const _DreamTypeRow(this.label, this.description);
+
+  final String label;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 88,
+            child: Text(label, style: AppTypography.labelAmber),
+          ),
+          Expanded(
+            child: Text(
+              description,
+              style: AppTypography.label
+                  .copyWith(color: AppColors.textSecondary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

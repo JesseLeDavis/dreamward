@@ -6,6 +6,8 @@ import '../../../../core/database/app_database.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/signal_loader.dart';
+import '../../../../core/widgets/terminal_pickers.dart';
 import '../../data/repositories/dream_repository_impl.dart';
 import '../bloc/dream_entry_cubit.dart';
 import '../bloc/dream_journal_bloc.dart';
@@ -102,20 +104,11 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
+    final picked = await showTerminalDatePicker(
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
-      builder: (ctx, child) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: const ColorScheme.dark(
-            primary: AppColors.amber,
-            surface: AppColors.backgroundSurface,
-          ),
-        ),
-        child: child!,
-      ),
     );
     if (picked != null) {
       setState(() => _selectedDate = picked);
@@ -123,13 +116,18 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
   }
 
   void _save() {
-    final title = _titleController.text.trim();
     final description = _descriptionController.text.trim();
-    if (title.isEmpty || description.isEmpty) {
+    if (description.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('TITLE AND ENTRY ARE REQUIRED.')),
+        const SnackBar(content: Text('DREAM ENTRY IS REQUIRED.')),
       );
       return;
+    }
+    var title = _titleController.text.trim();
+    if (title.isEmpty) {
+      // Auto-derive: first 8 words of description.
+      final words = description.split(RegExp(r'\s+')).take(8).join(' ');
+      title = words.length > 60 ? '${words.substring(0, 60)}...' : words;
     }
     context.read<DreamEntryCubit>().saveDream(
           title: title,
@@ -280,14 +278,7 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
             return TextButton(
               onPressed: saving ? null : _save,
               child: saving
-                  ? const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 1.5,
-                        color: AppColors.amber,
-                      ),
-                    )
+                  ? const MiniSignalLoader()
                   : Text(
                       'SAVE',
                       style: AppTypography.label.copyWith(

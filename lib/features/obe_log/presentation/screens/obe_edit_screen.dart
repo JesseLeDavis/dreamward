@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/signal_loader.dart';
+import '../../../../core/widgets/terminal_pickers.dart';
 import '../../data/repositories/obe_repository_impl.dart';
 import '../bloc/obe_entry_cubit.dart';
 import '../bloc/obe_log_bloc.dart';
@@ -133,20 +134,11 @@ class _ObeEditBodyState extends State<_ObeEditBody> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
+    final picked = await showTerminalDatePicker(
       context: context,
       initialDate: _sessionDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
-      builder: (ctx, child) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: const ColorScheme.dark(
-            primary: AppColors.amber,
-            surface: AppColors.backgroundSurface,
-          ),
-        ),
-        child: child!,
-      ),
     );
     if (picked != null) {
       setState(() => _sessionDate = picked);
@@ -339,14 +331,7 @@ class _ObeEditBodyState extends State<_ObeEditBody> {
             return TextButton(
               onPressed: saving || _loading ? null : _save,
               child: saving
-                  ? const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 1.5,
-                        color: AppColors.amber,
-                      ),
-                    )
+                  ? const MiniSignalLoader()
                   : Text(
                       'SAVE',
                       style: AppTypography.label.copyWith(

@@ -5,6 +5,7 @@ import '../../../../core/database/app_database.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/signal_loader.dart';
 import '../bloc/entity_cubit.dart';
 
 // Preset tag colors (hex strings stored in DB).
@@ -378,11 +379,7 @@ class _CreateTagForm extends StatelessWidget {
               FilledButton(
                 onPressed: creating ? null : onSave,
                 child: creating
-                    ? const SizedBox(
-                        width: 12,
-                        height: 12,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 1.5, color: AppColors.textInverse))
+                    ? const MiniSignalLoader(color: AppColors.textInverse)
                     : const Text('SAVE'),
               ),
             ],

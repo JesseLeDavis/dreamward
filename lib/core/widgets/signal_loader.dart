@@ -64,3 +64,57 @@ class _SignalLoaderState extends State<SignalLoader>
     );
   }
 }
+
+/// Inline 3-bar variant for in-button save states.
+/// Use in place of CircularProgressIndicator inside TextButton/IconButton slots.
+class MiniSignalLoader extends StatefulWidget {
+  const MiniSignalLoader({super.key, this.color});
+
+  final Color? color;
+
+  @override
+  State<MiniSignalLoader> createState() => _MiniSignalLoaderState();
+}
+
+class _MiniSignalLoaderState extends State<MiniSignalLoader>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.color ?? AppColors.amber;
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(3, (i) {
+            final threshold = i / 3.0;
+            final active = _controller.value >= threshold;
+            return Container(
+              width: 4,
+              height: 12,
+              margin: EdgeInsets.only(right: i == 2 ? 0 : 3),
+              color: active ? c : AppColors.borderStrong,
+            );
+          }),
+        );
+      },
+    );
+  }
+}
