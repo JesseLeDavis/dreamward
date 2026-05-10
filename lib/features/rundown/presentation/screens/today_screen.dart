@@ -12,16 +12,9 @@ import '../../../../core/widgets/data_tag.dart';
 import '../../../../core/widgets/field_section.dart';
 import '../../../../core/widgets/scan_line_overlay.dart';
 
-// ---------------------------------------------------------------------------
-// Mock affirmations — will come from content library via BLoC
-// ---------------------------------------------------------------------------
-
-const _affirmations = [
+// Fallback used only if the content library hasn't seeded yet.
+const _fallbackAffirmations = [
   'I AM MORE THAN MY PHYSICAL BODY.',
-  'I EXIST BEYOND THE LIMITS OF TIME AND SPACE.',
-  'MY CONSCIOUSNESS IS FREE TO EXPLORE.',
-  'I AM OPEN TO ALL THAT I AM.',
-  'I MOVE OUTWARD WITH CLARITY AND PURPOSE.',
 ];
 
 // ---------------------------------------------------------------------------
@@ -39,6 +32,7 @@ class TodayScreen extends StatefulWidget {
 
 class _TodayScreenState extends State<TodayScreen> {
   int _affirmationIndex = 0;
+  List<String> _affirmations = _fallbackAffirmations;
 
   // Stats
   int _sessionsThisMonth = 0;
@@ -51,8 +45,17 @@ class _TodayScreenState extends State<TodayScreen> {
   @override
   void initState() {
     super.initState();
-    _loadRundown();
+    _loadAffirmations().then((_) => _loadRundown());
     _loadStats();
+  }
+
+  Future<void> _loadAffirmations() async {
+    // contentType 1 = affirmation
+    final items = await _db.contentDao.watchContentByType(1).first;
+    if (!mounted || items.isEmpty) return;
+    setState(() {
+      _affirmations = items.map((c) => c.title).toList();
+    });
   }
 
   Future<void> _loadRundown() async {
@@ -79,7 +82,9 @@ class _TodayScreenState extends State<TodayScreen> {
       ritualField: Value(_ritual['field'] ?? false),
       ritualAffirmation: Value(_ritual['affirmation'] ?? false),
       sleepIntention: Value(_intention.trim().isNotEmpty ? _intention.trim() : null),
-      affirmationOfDay: Value(_affirmations[_affirmationIndex]),
+      affirmationOfDay: Value(
+        _affirmations.isEmpty ? null : _affirmations[_affirmationIndex],
+      ),
     ));
   }
 
@@ -132,6 +137,7 @@ class _TodayScreenState extends State<TodayScreen> {
   int get _manualComplete => _ritual.values.where((v) => v).length;
 
   void _cycleAffirmation() {
+    if (_affirmations.length <= 1) return;
     setState(() => _affirmationIndex = (_affirmationIndex + 1) % _affirmations.length);
     _persistRundown();
   }
@@ -188,7 +194,10 @@ class _TodayScreenState extends State<TodayScreen> {
           ),
           const SizedBox(height: AppSpacing.sectionGap),
           _AffirmationSection(
-            affirmation: _affirmations[_affirmationIndex],
+            affirmation: _affirmations.isEmpty
+                ? '---'
+                : _affirmations[_affirmationIndex.clamp(0, _affirmations.length - 1)],
+            canCycle: _affirmations.length > 1,
             onCycle: _cycleAffirmation,
           ),
           const SizedBox(height: AppSpacing.xxl),
@@ -250,10 +259,12 @@ class _TodayAppBar extends StatelessWidget implements PreferredSizeWidget {
 class _AffirmationSection extends StatelessWidget {
   const _AffirmationSection({
     required this.affirmation,
+    required this.canCycle,
     required this.onCycle,
   });
 
   final String affirmation;
+  final bool canCycle;
   final VoidCallback onCycle;
 
   @override
@@ -261,9 +272,20 @@ class _AffirmationSection extends StatelessWidget {
     return FieldSection(
       label: 'UNIT 001 / DAILY DECLARATION',
       headerColor: AppColors.amberMuted,
-      trailing: GestureDetector(
-        onTap: onCycle,
-        child: Text('NEXT SIGNAL ▶', style: AppTypography.labelAmber),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (canCycle)
+            GestureDetector(
+              onTap: onCycle,
+              child: Text('NEXT ▶', style: AppTypography.labelAmber),
+            ),
+          if (canCycle) const SizedBox(width: 12),
+          GestureDetector(
+            onTap: () => context.pushNamed(AppRoutes.affirmationsManage),
+            child: Text('MANAGE', style: AppTypography.label),
+          ),
+        ],
       ),
       contentPadding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.cardPad,

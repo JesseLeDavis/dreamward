@@ -101,4 +101,23 @@ abstract final class AppTypography {
         letterSpacing: 0.3,
         height: 1.6,
       );
+
+  /// Long-form narrative body — dream and OBE descriptions, field guide article body.
+  /// Sans-serif (Inter) for readability at length. Mono is reserved for instrument chrome.
+  static TextStyle get narrativeBody => GoogleFonts.inter(
+        fontSize: 15,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textPrimary,
+        letterSpacing: 0.1,
+        height: 1.65,
+      );
+
+  /// Muted narrative — summaries, secondary long-form text.
+  static TextStyle get narrativeMuted => GoogleFonts.inter(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textSecondary,
+        letterSpacing: 0.1,
+        height: 1.55,
+      );
 }

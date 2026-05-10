@@ -272,7 +272,7 @@ class _DreamDetailScreenState extends State<DreamDetailScreen> {
           const SizedBox(height: AppSpacing.sectionGap),
           FieldSection(
             label: 'SIGNAL RECORD',
-            child: Text(dream.description, style: AppTypography.dataOutput),
+            child: Text(dream.description, style: AppTypography.narrativeBody),
           ),
 
           // ── Summary ────────────────────────────────────────
@@ -280,7 +280,7 @@ class _DreamDetailScreenState extends State<DreamDetailScreen> {
             const SizedBox(height: AppSpacing.sectionGap),
             FieldSection(
               label: 'SUMMARY',
-              child: Text(dream.summary!, style: AppTypography.bodyMuted),
+              child: Text(dream.summary!, style: AppTypography.narrativeMuted),
             ),
           ],
 

@@ -140,6 +140,40 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
         );
   }
 
+  bool get _hasDraft =>
+      _experienceController.text.trim().isNotEmpty ||
+      _techniqueController.text.trim().isNotEmpty ||
+      _targetController.text.trim().isNotEmpty;
+
+  Future<bool> _confirmDiscard() async {
+    if (!_hasDraft) return true;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.backgroundSurface,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        title: Text('DISCARD DRAFT?', style: AppTypography.heading),
+        content: Text(
+          'Session not saved. Closing now will lose this entry.',
+          style: AppTypography.signalText,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('KEEP',
+                style: AppTypography.label.copyWith(color: AppColors.amber)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text('DISCARD',
+                style: AppTypography.label.copyWith(color: AppColors.statusAlert)),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<ObeEntryCubit, ObeEntryState>(
@@ -152,7 +186,16 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
           );
         }
       },
-      child: Scaffold(
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) async {
+          if (didPop) return;
+          final navigator = Navigator.of(context);
+          final discard = await _confirmDiscard();
+          if (!mounted) return;
+          if (discard) navigator.pop();
+        },
+        child: Scaffold(
         backgroundColor: AppColors.backgroundBase,
         appBar: _buildAppBar(),
         body: SingleChildScrollView(
@@ -165,6 +208,19 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
             children: [
               // Date
               _DateSection(dateString: _dateString, onTap: _pickDate),
+              const SizedBox(height: AppSpacing.sectionGap),
+
+              // Experience notes — capture first, classify after.
+              _LabeledField(
+                label: 'EXPERIENCE NOTES',
+                child: _BorderedTextField(
+                  controller: _experienceController,
+                  hintText: '// describe what you found',
+                  maxLines: null,
+                  minLines: 10,
+                  narrative: true,
+                ),
+              ),
               const SizedBox(height: AppSpacing.sectionGap),
 
               // Technique
@@ -247,21 +303,10 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
                   maxLines: 1,
                 ),
               ),
-              const SizedBox(height: AppSpacing.sectionGap),
-
-              // Experience
-              _LabeledField(
-                label: 'EXPERIENCE NOTES',
-                child: _BorderedTextField(
-                  controller: _experienceController,
-                  hintText: '---',
-                  maxLines: null,
-                  minLines: 8,
-                ),
-              ),
               const SizedBox(height: AppSpacing.xl),
             ],
           ),
+        ),
         ),
       ),
     );
@@ -272,7 +317,7 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
       backgroundColor: AppColors.backgroundDeep,
       leading: IconButton(
         icon: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
-        onPressed: () => Navigator.of(context).pop(),
+        onPressed: () => Navigator.of(context).maybePop(),
       ),
       title: Text('LOG SESSION', style: AppTypography.heading),
       actions: [
@@ -330,12 +375,14 @@ class _BorderedTextField extends StatelessWidget {
     this.hintText,
     this.maxLines = 1,
     this.minLines,
+    this.narrative = false,
   });
 
   final TextEditingController controller;
   final String? hintText;
   final int? maxLines;
   final int? minLines;
+  final bool narrative;
 
   @override
   Widget build(BuildContext context) {
@@ -346,7 +393,7 @@ class _BorderedTextField extends StatelessWidget {
       ),
       child: TextField(
         controller: controller,
-        style: AppTypography.body,
+        style: narrative ? AppTypography.narrativeBody : AppTypography.body,
         maxLines: maxLines,
         minLines: minLines,
         decoration: InputDecoration(
@@ -405,6 +452,102 @@ class _DateSection extends StatelessWidget {
   }
 }
 
+/// Inline definitions surfaced via (?) tap.
+const _vocabDefs = <String, List<List<String>>>{
+  'SESSION TYPE': [
+    ['DELIBERATE', 'Sat down with the express intent to leave the body. Clock time set aside; technique chosen in advance.'],
+    ['AMBIENT', 'A loose, drift-into-it session — laying down to nap, hypnagogic edges, no rigid technique.'],
+    ['BRIDGE', 'Caught a transition (waking, falling asleep, brief rouse) and worked it into a session in-progress.'],
+  ],
+  'OUTCOME': [
+    ['ATTEMPTED', 'Set up the session but didn\'t reach onset or separation. Logged anyway — attempts are data.'],
+    ['PARTIAL', 'Onset occurred or some shift was felt; not a clean exit. Vibrations, paralysis, partial separation.'],
+    ['CLEAN', 'Full separation from the body or clear non-local awareness. The thing happened.'],
+  ],
+  'FOCUS LEVEL': [
+    ['PHASE I', 'Body relaxed, mind awake. Pre-onset baseline.'],
+    ['PHASE II', 'Body asleep, mind awake. Vibrations, paralysis, sound effects begin.'],
+    ['PHASE III', 'Separation imminent or beginning. Floating, sinking, lifting sensations.'],
+    ['PHASE IV', 'Separation achieved. Operator is non-local.'],
+  ],
+  'ONSET INTENSITY': [
+    ['TRACE', 'Faint vibrations or a subtle shift — barely above baseline.'],
+    ['STRONG', 'Clear, unmistakable onset. Vibrations, body buzz, audible artifacts.'],
+    ['SURGE', 'Overwhelming wave. Hard to remain neutral; easy to startle awake.'],
+  ],
+  'FIELD TYPE': [
+    ['LOCAL', 'Awareness near or around the physical body — same room, immediate environment.'],
+    ['EXPANDED', 'Familiar but expanded space — house, neighborhood, places known to the operator.'],
+    ['PARALLEL', 'Non-local environments — unfamiliar settings, dreamlike but stable, other-than-here.'],
+  ],
+};
+
+void _showDefinition(BuildContext context, String label) {
+  final entries = _vocabDefs[label];
+  if (entries == null) return;
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: AppColors.backgroundSurface,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    builder: (ctx) => Container(
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.borderNormal)),
+      ),
+      padding: const EdgeInsets.all(AppSpacing.cardPad),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: AppTypography.heading),
+          const SizedBox(height: 6),
+          Text('// field reference', style: AppTypography.signalText),
+          const SizedBox(height: AppSpacing.md),
+          for (final entry in entries) ...[
+            Text(entry[0], style: AppTypography.labelAmber),
+            const SizedBox(height: 4),
+            Text(entry[1], style: AppTypography.narrativeBody),
+            const SizedBox(height: AppSpacing.md),
+          ],
+        ],
+      ),
+    ),
+  );
+}
+
+class _LabelWithHelp extends StatelessWidget {
+  const _LabelWithHelp({required this.label});
+  final String label;
+  @override
+  Widget build(BuildContext context) {
+    final hasDef = _vocabDefs.containsKey(label);
+    if (!hasDef) return Text(label, style: AppTypography.label);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label, style: AppTypography.label),
+        const SizedBox(width: 6),
+        GestureDetector(
+          onTap: () => _showDefinition(context, label),
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.borderSubtle),
+            ),
+            child: Text(
+              '?',
+              style: AppTypography.label.copyWith(
+                color: AppColors.signalGreenDim,
+                letterSpacing: 0,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ChipSelector extends StatelessWidget {
   const _ChipSelector({
     required this.label,
@@ -423,7 +566,7 @@ class _ChipSelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTypography.label),
+        _LabelWithHelp(label: label),
         const SizedBox(height: 6),
         Wrap(
           spacing: 6,
@@ -482,7 +625,7 @@ class _NullableChipSelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTypography.label),
+        _LabelWithHelp(label: label),
         const SizedBox(height: 6),
         Wrap(
           spacing: 6,

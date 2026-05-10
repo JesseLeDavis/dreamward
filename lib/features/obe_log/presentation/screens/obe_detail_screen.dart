@@ -213,7 +213,7 @@ class _ObeDetailScreenState extends State<ObeDetailScreen> {
             FieldSection(
               label: 'PRE-SESSION TARGET',
               child:
-                  Text(log.intention!, style: AppTypography.dataOutput),
+                  Text(log.intention!, style: AppTypography.narrativeBody),
             ),
           ],
 
@@ -222,7 +222,7 @@ class _ObeDetailScreenState extends State<ObeDetailScreen> {
           FieldSection(
             label: 'EXCURSION RECORD',
             child:
-                Text(bodyText, style: AppTypography.dataOutput),
+                Text(bodyText, style: AppTypography.narrativeBody),
           ),
 
           // ── Narrative ─────────────────────────────────────
@@ -231,7 +231,7 @@ class _ObeDetailScreenState extends State<ObeDetailScreen> {
             FieldSection(
               label: 'NARRATIVE',
               child: Text(log.experienceNarrative!,
-                  style: AppTypography.dataOutput),
+                  style: AppTypography.narrativeBody),
             ),
           ],
 
@@ -241,7 +241,7 @@ class _ObeDetailScreenState extends State<ObeDetailScreen> {
             FieldSection(
               label: 'POST-SESSION REFLECTION',
               child: Text(log.postReflection!,
-                  style: AppTypography.bodyMuted),
+                  style: AppTypography.narrativeMuted),
             ),
           ],
 

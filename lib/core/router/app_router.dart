@@ -8,6 +8,8 @@ import '../theme/app_colors.dart';
 import '../../features/calendar/presentation/bloc/calendar_bloc.dart';
 import '../../features/calendar/presentation/screens/calendar_day_screen.dart';
 import '../../features/calendar/presentation/screens/calendar_screen.dart';
+import '../../features/content/presentation/screens/affirmation_edit_screen.dart';
+import '../../features/content/presentation/screens/affirmations_manage_screen.dart';
 import '../../features/dream_journal/presentation/screens/character_new_screen.dart';
 import '../../features/dream_journal/presentation/screens/dream_edit_screen.dart';
 import '../../features/dream_journal/presentation/screens/dream_new_screen.dart';
@@ -127,6 +129,31 @@ GoRouter createAppRouter() {
         parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) =>
             _voidFadePage(const CharacterNewScreen()),
+      ),
+      GoRoute(
+        path: '/today/affirmations',
+        name: AppRoutes.affirmationsManage,
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (context, state) =>
+            _voidFadePage(const AffirmationsManageScreen()),
+        routes: [
+          GoRoute(
+            path: 'new',
+            name: AppRoutes.affirmationNew,
+            parentNavigatorKey: rootNavigatorKey,
+            pageBuilder: (context, state) =>
+                _voidFadePage(const AffirmationEditScreen()),
+          ),
+          GoRoute(
+            path: ':id/edit',
+            name: AppRoutes.affirmationEdit,
+            parentNavigatorKey: rootNavigatorKey,
+            pageBuilder: (context, state) {
+              final id = int.parse(state.pathParameters['id']!);
+              return _voidFadePage(AffirmationEditScreen(itemId: id));
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: '/journal/dreams/:dreamId/links/search',

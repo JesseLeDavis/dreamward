@@ -31,6 +31,11 @@ abstract final class AppRoutes {
   static const exploreCategory = 'explore-category';
   static const contentItem = 'content-item';
 
+  // --- Affirmations management (root-level modals) ---
+  static const affirmationsManage = 'affirmations-manage';
+  static const affirmationNew = 'affirmation-new';
+  static const affirmationEdit = 'affirmation-edit';
+
   // --- Calendar tab ---
   static const calendarMonth = 'calendar-month';
   static const calendarDay = 'calendar-day'; // /calendar/:date

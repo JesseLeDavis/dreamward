@@ -141,6 +141,41 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
         );
   }
 
+  bool get _hasDraft =>
+      _descriptionController.text.trim().isNotEmpty ||
+      _titleController.text.trim().isNotEmpty ||
+      _selectedTags.isNotEmpty ||
+      _selectedCharacters.isNotEmpty;
+
+  Future<bool> _confirmDiscard() async {
+    if (!_hasDraft) return true;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.backgroundSurface,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        title: Text('DISCARD DRAFT?', style: AppTypography.heading),
+        content: Text(
+          'Signal not saved. Closing now will lose this entry.',
+          style: AppTypography.signalText,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('KEEP',
+                style: AppTypography.label.copyWith(color: AppColors.amber)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text('DISCARD',
+                style: AppTypography.label.copyWith(color: AppColors.statusAlert)),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<DreamEntryCubit, DreamEntryState>(
@@ -153,7 +188,16 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
           );
         }
       },
-      child: Scaffold(
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) async {
+          if (didPop) return;
+          final navigator = Navigator.of(context);
+          final discard = await _confirmDiscard();
+          if (!mounted) return;
+          if (discard) navigator.pop();
+        },
+        child: Scaffold(
         backgroundColor: AppColors.backgroundBase,
         appBar: _buildAppBar(),
         body: SingleChildScrollView(
@@ -169,11 +213,23 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
                 onTap: _pickDate,
               ),
               const SizedBox(height: AppSpacing.sectionGap),
+              // Description first — capture before recall fades.
+              _LabeledField(
+                label: 'DREAM ENTRY',
+                child: _BorderedTextField(
+                  controller: _descriptionController,
+                  hintText: '// recall what you find there',
+                  maxLines: null,
+                  minLines: 10,
+                  narrative: true,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sectionGap),
               _LabeledField(
                 label: 'TITLE',
                 child: _BorderedTextField(
                   controller: _titleController,
-                  hintText: '---',
+                  hintText: '--- (auto from entry)',
                   maxLines: 1,
                 ),
               ),
@@ -199,16 +255,6 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
                   onChanged: (v) => setState(() => _achievedLucidity = v),
                 ),
               ],
-              const SizedBox(height: AppSpacing.sectionGap),
-              _LabeledField(
-                label: 'DREAM ENTRY',
-                child: _BorderedTextField(
-                  controller: _descriptionController,
-                  hintText: '---',
-                  maxLines: null,
-                  minLines: 8,
-                ),
-              ),
               const SizedBox(height: AppSpacing.sectionGap),
 
               // Tags
@@ -259,6 +305,7 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
             ],
           ),
         ),
+        ),
       ),
     );
   }
@@ -268,7 +315,7 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
       backgroundColor: AppColors.backgroundDeep,
       leading: IconButton(
         icon: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
-        onPressed: () => Navigator.of(context).pop(),
+        onPressed: () => Navigator.of(context).maybePop(),
       ),
       title: Text('LOG DREAM', style: AppTypography.heading),
       actions: [
@@ -326,12 +373,14 @@ class _BorderedTextField extends StatelessWidget {
     this.hintText,
     this.maxLines = 1,
     this.minLines,
+    this.narrative = false,
   });
 
   final TextEditingController controller;
   final String? hintText;
   final int? maxLines;
   final int? minLines;
+  final bool narrative;
 
   @override
   Widget build(BuildContext context) {
@@ -342,7 +391,7 @@ class _BorderedTextField extends StatelessWidget {
       ),
       child: TextField(
         controller: controller,
-        style: AppTypography.body,
+        style: narrative ? AppTypography.narrativeBody : AppTypography.body,
         maxLines: maxLines,
         minLines: minLines,
         decoration: InputDecoration(
