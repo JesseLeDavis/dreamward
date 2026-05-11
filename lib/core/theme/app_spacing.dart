@@ -7,16 +7,21 @@ abstract final class AppSpacing {
   static const double xxl = 32;
 
   /// Horizontal padding at screen edges
-  static const double screenH = 16;
+  static const double screenH = 18;
 
   /// Vertical padding at screen top/bottom
-  static const double screenV = 14;
+  static const double screenV = 16;
 
-  /// Gap between major sections
-  static const double sectionGap = 18;
+  /// Gap between major sections — needs to clear the neu pillow shadow
+  /// blur (~14px), so card stacks don't visually crowd each other.
+  static const double sectionGap = 24;
 
   /// Padding inside bordered cards / sections
   static const double cardPad = 12;
+
+  /// Gap between sibling raised cards in a vertical list. Slightly tighter
+  /// than sectionGap so list rhythm stays denser than section rhythm.
+  static const double cardGap = 14;
 
   /// Standard border stroke
   static const double borderWidth = 1.0;

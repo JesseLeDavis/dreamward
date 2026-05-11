@@ -352,7 +352,8 @@ class _DreamList extends StatelessWidget {
               vertical: AppSpacing.screenV,
             ),
             itemCount: dreams.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, __) =>
+                const SizedBox(height: AppSpacing.cardGap),
             itemBuilder: (context, i) => _DreamCard(
               dream: dreams[i],
               onTap: () => context.pushNamed(

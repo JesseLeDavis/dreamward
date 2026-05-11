@@ -92,7 +92,8 @@ class _AffirmationsManageScreenState extends State<AffirmationsManageScreen> {
               vertical: AppSpacing.screenV,
             ),
             itemCount: sorted.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, __) =>
+                const SizedBox(height: AppSpacing.cardGap),
             itemBuilder: (context, i) {
               final item = sorted[i];
               return _AffirmationRow(

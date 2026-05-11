@@ -86,7 +86,8 @@ class _ExploreCategoryScreenState extends State<ExploreCategoryScreen> {
               vertical: AppSpacing.screenV,
             ),
             itemCount: items.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, __) =>
+                const SizedBox(height: AppSpacing.cardGap),
             itemBuilder: (context, i) => _ContentCard(
               item: items[i],
               onTap: () => context.pushNamed(

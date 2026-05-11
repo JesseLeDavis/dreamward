@@ -433,7 +433,8 @@ class _ObeList extends StatelessWidget {
             vertical: AppSpacing.screenV,
           ),
           itemCount: filtered.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          separatorBuilder: (_, __) =>
+              const SizedBox(height: AppSpacing.cardGap),
           itemBuilder: (context, i) {
             final log = filtered[i];
             return _ObeCard(

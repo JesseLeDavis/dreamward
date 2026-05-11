@@ -338,7 +338,7 @@ class _WeekRow extends StatelessWidget {
 
 // ---------------------------------------------------------------------------
 // Day cell — tabular day number top-left, three-dot indicator strip bottom,
-// amber ring + [NOW] tag on today.
+// amber ring on today.
 // ---------------------------------------------------------------------------
 
 class _DayCell extends StatelessWidget {
@@ -392,24 +392,12 @@ class _DayCell extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      date.day.toString().padLeft(2, '0'),
-                      style: AppTypography.body.copyWith(
-                        color: dayColor,
-                        fontSize: 12,
-                      ),
-                    ),
-                    if (isToday) ...[
-                      const Spacer(),
-                      Text(
-                        '[NOW]',
-                        style: AppTypography.microMono
-                            .copyWith(color: AppColors.amber),
-                      ),
-                    ],
-                  ],
+                Text(
+                  date.day.toString().padLeft(2, '0'),
+                  style: AppTypography.body.copyWith(
+                    color: dayColor,
+                    fontSize: 12,
+                  ),
                 ),
                 const Spacer(),
                 _IndicatorStrip(
