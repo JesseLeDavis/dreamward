@@ -9,6 +9,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/neu_surface.dart';
 import '../../../../core/widgets/data_tag.dart';
 import '../../../../core/widgets/signal_loader.dart';
 import '../../../../core/widgets/signal_search_field.dart';
@@ -326,7 +327,7 @@ class _FilterRow extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
-                        vertical: 10,
+                        vertical: 8,
                       ),
                       decoration: BoxDecoration(
                         color: active
@@ -337,6 +338,7 @@ class _FilterRow extends StatelessWidget {
                               ? AppColors.amber
                               : AppColors.borderSubtle,
                         ),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         opt,
@@ -498,21 +500,16 @@ class _ObeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.backgroundSurface,
-          border: Border.all(color: AppColors.borderNormal),
-        ),
+      child: NeuRaised(
+        radius: 14,
+        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Zone 1: header — date / session type / technique / state
             _CardHeader(log: log, stateColor: _stateColor),
-            const Divider(height: 1, color: AppColors.borderSubtle),
-            // Zone 2: Phase data strip
+            const SizedBox(height: 10),
             _MonroeStrip(log: log),
-            const Divider(height: 1, color: AppColors.borderSubtle),
-            // Zone 3: snippet
+            const SizedBox(height: 10),
             _CardBody(log: log),
           ],
         ),
@@ -534,32 +531,22 @@ class _CardHeader extends StatelessWidget {
     final label = _stateLabel(log.entryState);
     final date = _formatDate(log.createdAt);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.cardPad,
-        vertical: 10,
-      ),
-      child: Row(
-        children: [
-          Text(date, style: AppTypography.timestamp),
-          const SizedBox(width: 6),
-          Container(width: 1, height: 10, color: AppColors.borderStrong),
-          const SizedBox(width: 6),
-          Text(sessionType, style: AppTypography.label),
-          const SizedBox(width: 6),
-          Container(width: 1, height: 10, color: AppColors.borderStrong),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              technique,
-              style: AppTypography.label,
-              overflow: TextOverflow.ellipsis,
-            ),
+    return Row(
+      children: [
+        Text(date, style: AppTypography.timestamp),
+        const SizedBox(width: 10),
+        Text(sessionType, style: AppTypography.label),
+        const SizedBox(width: 10),
+        Flexible(
+          child: Text(
+            technique,
+            style: AppTypography.label,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(width: 6),
-          DataTag(label: label, color: stateColor),
-        ],
-      ),
+        ),
+        const SizedBox(width: 6),
+        DataTag(label: label, color: stateColor),
+      ],
     );
   }
 }
@@ -577,33 +564,22 @@ class _MonroeStrip extends StatelessWidget {
     final onsetReached = log.onsetReached;
     final onsetIntensity = log.onsetIntensity;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.cardPad,
-        vertical: 10,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _FocusLevelBar(level: barLevel),
-              const SizedBox(width: 12),
-              _VibrationIndicator(
-                reached: onsetReached,
-                intensity: onsetIntensity,
-              ),
-              if (log.fieldType != null) ...[
-                const SizedBox(width: 12),
-                DataTag(
-                  label: _fieldTypeLabel(log.fieldType!),
-                  color: AppColors.statusSleep,
-                ),
-              ],
-            ],
+    return Row(
+      children: [
+        _FocusLevelBar(level: barLevel),
+        const SizedBox(width: 12),
+        _VibrationIndicator(
+          reached: onsetReached,
+          intensity: onsetIntensity,
+        ),
+        if (log.fieldType != null) ...[
+          const SizedBox(width: 12),
+          DataTag(
+            label: _fieldTypeLabel(log.fieldType!),
+            color: AppColors.statusSleep,
           ),
         ],
-      ),
+      ],
     );
   }
 
@@ -624,14 +600,11 @@ class _CardBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.cardPad),
-      child: Text(
-        log.description,
-        style: AppTypography.dataOutput,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
+    return Text(
+      log.description,
+      style: AppTypography.dataOutput,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }
@@ -734,82 +707,49 @@ class _EmptyState extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.screenH),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.backgroundSurface,
-            border: Border.all(color: AppColors.borderStrong),
-          ),
+        child: NeuRaised(
+          radius: 16,
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header bar
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.cardPad,
-                  vertical: 8,
-                ),
-                decoration: const BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: AppColors.borderSubtle),
+              Row(
+                children: [
+                  Text('OBE LOG', style: AppTypography.label),
+                  const Spacer(),
+                  Text(
+                    'NO EXCURSIONS LOGGED.',
+                    style: AppTypography.label
+                        .copyWith(color: AppColors.textMuted),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Text('OBE LOG', style: AppTypography.label),
-                    const Spacer(),
-                    Text(
-                      'NO EXCURSIONS LOGGED.',
-                      style: AppTypography.label
-                          .copyWith(color: AppColors.textMuted),
-                    ),
-                  ],
-                ),
+                ],
               ),
-
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Phase progression
-                    Text('PHASE PROGRESSION',
-                        style: AppTypography.label),
-                    const SizedBox(height: 4),
-                    const Divider(height: 1, color: AppColors.borderSubtle),
-                    const SizedBox(height: 10),
-                    _FocusRow('PHASE I', 'BODY RELAXED / MIND ALERT'),
-                    _FocusRow('PHASE II', 'EXPANDED AWARENESS'),
-                    _FocusRow('PHASE III', 'THRESHOLD STATE'),
-                    _FocusRow('PHASE IV', 'FULL SEPARATION'),
-                    const SizedBox(height: AppSpacing.lg),
-
-                    // Invitation
-                    Text(
-                      'FIELD UNIT READY.',
-                      style: AppTypography.label,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Onset. Field type. Target.',
-                      style: AppTypography.signalText,
-                    ),
-                    Text(
-                      'Separation is a skill. Log everything.',
-                      style: AppTypography.signalText,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-
-                    // CTA
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () =>
-                            context.pushNamed(AppRoutes.obeNew),
-                        child: const Text('+ BEGIN FIRST EXCURSION RECORD'),
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 14),
+              Text('PHASE PROGRESSION', style: AppTypography.label),
+              const SizedBox(height: 10),
+              _FocusRow('PHASE I', 'BODY RELAXED / MIND ALERT'),
+              _FocusRow('PHASE II', 'EXPANDED AWARENESS'),
+              _FocusRow('PHASE III', 'THRESHOLD STATE'),
+              _FocusRow('PHASE IV', 'FULL SEPARATION'),
+              const SizedBox(height: AppSpacing.lg),
+              Text('FIELD UNIT READY.', style: AppTypography.label),
+              const SizedBox(height: 4),
+              Text(
+                'Onset. Field type. Target.',
+                style: AppTypography.signalText,
+              ),
+              Text(
+                'Separation is a skill. Log everything.',
+                style: AppTypography.signalText,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () =>
+                      context.pushNamed(AppRoutes.obeNew),
+                  child: const Text('+ BEGIN FIRST EXCURSION RECORD'),
                 ),
               ),
             ],

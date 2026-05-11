@@ -376,11 +376,13 @@ class _DayCell extends StatelessWidget {
             Positioned.fill(
               child: IgnorePointer(
                 child: Container(
+                  margin: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
                     border: Border.all(
                       color: AppColors.amber,
                       width: 1.5,
                     ),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
               ),

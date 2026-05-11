@@ -895,6 +895,7 @@ class _RitualItem extends StatelessWidget {
               border: Border.all(
                 color: checked ? AppColors.amber : AppColors.borderNormal,
               ),
+              borderRadius: BorderRadius.circular(4),
             ),
             child: Center(
               child: Text(

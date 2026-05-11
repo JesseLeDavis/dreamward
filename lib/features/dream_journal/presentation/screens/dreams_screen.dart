@@ -9,6 +9,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/neu_surface.dart';
 import '../../../../core/widgets/data_tag.dart';
 import '../../../../core/widgets/signal_loader.dart';
 import '../../../../core/widgets/signal_search_field.dart';
@@ -142,7 +143,6 @@ class _FilterBar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.screenH, vertical: 10),
               decoration: const BoxDecoration(
-                color: AppColors.backgroundDeep,
                 border: Border(
                     bottom: BorderSide(color: AppColors.borderSubtle)),
               ),
@@ -243,16 +243,15 @@ class _FilterButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.borderNormal),
-        ),
+      child: NeuRaised(
+        radius: 10,
+        intensity: 0.6,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             TerminalGlyph(glyph, size: 12, color: AppColors.textMuted),
-            const SizedBox(width: 5),
+            const SizedBox(width: 6),
             Text(label,
                 style: AppTypography.tag.copyWith(color: AppColors.textMuted)),
           ],
@@ -281,6 +280,7 @@ class _ActiveFilterChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.amberMuted,
         border: Border.all(color: color),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -413,75 +413,51 @@ class _DreamCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.backgroundSurface,
-          border: Border.all(color: AppColors.borderNormal),
-        ),
+      child: NeuRaised(
+        radius: 14,
+        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header row: date + type
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.cardPad,
-                vertical: 10,
-              ),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: AppColors.borderSubtle),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Text(_dateLabel, style: AppTypography.timestamp),
-                  const SizedBox(width: 8),
-                  Container(width: 1, height: 10, color: AppColors.borderStrong),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      _typeLabel.toUpperCase(),
-                      style: AppTypography.label,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  if (_isContinuation)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: Text('CHAIN', style: AppTypography.labelAmber),
-                    ),
-                  const TerminalGlyph(
-                    Glyphs.chevronRight,
-                    size: 14,
-                    color: AppColors.textMuted,
-                  ),
-                ],
-              ),
-            ),
-
-            // Snippet + clarity + tag
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.cardPad),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _snippet,
-                    style: AppTypography.dataOutput,
-                    maxLines: 2,
+            Row(
+              children: [
+                Text(_dateLabel, style: AppTypography.timestamp),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    _typeLabel.toUpperCase(),
+                    style: AppTypography.label,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      DataTag(label: _typeLabel, color: _tagColor),
-                      const Spacer(),
-                      _ClarityBar(clarity: dream.clarity),
-                    ],
+                ),
+                const SizedBox(width: 6),
+                if (_isContinuation)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: Text('CHAIN', style: AppTypography.labelAmber),
                   ),
-                ],
-              ),
+                const TerminalGlyph(
+                  Glyphs.chevronRight,
+                  size: 14,
+                  color: AppColors.textMuted,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _snippet,
+              style: AppTypography.dataOutput,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                DataTag(label: _typeLabel, color: _tagColor),
+                const Spacer(),
+                _ClarityBar(clarity: dream.clarity),
+              ],
             ),
           ],
         ),
@@ -527,67 +503,45 @@ class _DreamsEmptyState extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.screenH),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.backgroundSurface,
-            border: Border.all(color: AppColors.borderStrong),
-          ),
+        child: NeuRaised(
+          radius: 16,
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.cardPad,
-                  vertical: 8,
-                ),
-                decoration: const BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: AppColors.borderSubtle),
+              Row(
+                children: [
+                  Text('DREAM LOG', style: AppTypography.label),
+                  const Spacer(),
+                  Text(
+                    'NO TRANSMISSIONS ON RECORD.',
+                    style: AppTypography.label
+                        .copyWith(color: AppColors.textSecondary),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Text('DREAM LOG', style: AppTypography.label),
-                    const Spacer(),
-                    Text(
-                      'NO TRANSMISSIONS ON RECORD.',
-                      style: AppTypography.label
-                          .copyWith(color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('DREAM TYPES', style: AppTypography.label),
-                    const SizedBox(height: 4),
-                    const Divider(height: 1, color: AppColors.borderSubtle),
-                    const SizedBox(height: 10),
-                    _DreamTypeRow('NORMAL', 'BASELINE NIGHT IMAGERY'),
-                    _DreamTypeRow('LUCID', 'AWARE WITHIN THE DREAM'),
-                    _DreamTypeRow('RECURRING', 'REPEATED MOTIF OR SCENE'),
-                    _DreamTypeRow('NIGHTMARE', 'DISTRESS / FEAR SIGNAL'),
-                    const SizedBox(height: AppSpacing.lg),
-                    Text('CHANNEL OPEN.', style: AppTypography.label),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Signal is present. Recall what you find there.',
-                      style: AppTypography.signalText,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () =>
-                            context.pushNamed(AppRoutes.dreamNew),
-                        child: const Text('+ OPEN FIRST LOG ENTRY'),
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 14),
+              Text('DREAM TYPES', style: AppTypography.label),
+              const SizedBox(height: 10),
+              _DreamTypeRow('NORMAL', 'BASELINE NIGHT IMAGERY'),
+              _DreamTypeRow('LUCID', 'AWARE WITHIN THE DREAM'),
+              _DreamTypeRow('RECURRING', 'REPEATED MOTIF OR SCENE'),
+              _DreamTypeRow('NIGHTMARE', 'DISTRESS / FEAR SIGNAL'),
+              const SizedBox(height: AppSpacing.lg),
+              Text('CHANNEL OPEN.', style: AppTypography.label),
+              const SizedBox(height: 4),
+              Text(
+                'Signal is present. Recall what you find there.',
+                style: AppTypography.signalText,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () =>
+                      context.pushNamed(AppRoutes.dreamNew),
+                  child: const Text('+ OPEN FIRST LOG ENTRY'),
                 ),
               ),
             ],

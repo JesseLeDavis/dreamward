@@ -10,6 +10,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/neu_surface.dart';
 import '../../../../core/widgets/terminal_glyph.dart';
 import '../bloc/content_bloc.dart';
 
@@ -164,6 +165,7 @@ class _FavoritesRow extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.amberMuted,
               border: Border.all(color: AppColors.amber.withAlpha(120)),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
@@ -205,60 +207,51 @@ class _CategoryTile extends StatelessWidget {
         AppRoutes.exploreCategory,
         pathParameters: {'category': category.slug},
       ),
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 88),
+      child: NeuRaised(
+        radius: 14,
         padding: const EdgeInsets.all(AppSpacing.cardPad),
-        decoration: BoxDecoration(
-          color: AppColors.backgroundSurface,
-          border: Border.all(color: AppColors.borderNormal),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Icon + count
-            Row(
-              children: [
-                TerminalGlyph(category.glyph,
-                    size: 16, color: AppColors.textSecondary),
-                const Spacer(),
-                Text(
-                  '$count',
-                  style: AppTypography.timestamp,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-
-            // Category name
-            Text(
-              category.label.toUpperCase(),
-              style: AppTypography.label,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              category.sublabel,
-              style: AppTypography.hint,
-            ),
-
-            const SizedBox(height: AppSpacing.md),
-
-            // Bottom amber line indicator
-            Container(
-              height: 2,
-              decoration: const BoxDecoration(
-                color: AppColors.borderStrong,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 88),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  TerminalGlyph(category.glyph,
+                      size: 16, color: AppColors.textSecondary),
+                  const Spacer(),
+                  Text(
+                    '$count',
+                    style: AppTypography.timestamp,
+                  ),
+                ],
               ),
-              child: count > 0
-                  ? Align(
-                      alignment: Alignment.centerLeft,
-                      child: FractionallySizedBox(
-                        widthFactor: (count / 10).clamp(0.05, 1.0),
-                        child: Container(color: AppColors.amber),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ],
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                category.label.toUpperCase(),
+                style: AppTypography.label,
+              ),
+              const SizedBox(height: 2),
+              Text(category.sublabel, style: AppTypography.hint),
+              const SizedBox(height: AppSpacing.md),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: Container(
+                  height: 3,
+                  color: AppColors.borderStrong,
+                  child: count > 0
+                      ? Align(
+                          alignment: Alignment.centerLeft,
+                          child: FractionallySizedBox(
+                            widthFactor: (count / 10).clamp(0.05, 1.0),
+                            child: Container(color: AppColors.amber),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
