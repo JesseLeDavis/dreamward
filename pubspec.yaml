@@ -1,7 +1,7 @@
 name: dreamward
 description: A personal consciousness and dream journaling app.
 publish_to: "none"
-version: 1.0.0+11
+version: 1.0.0+12
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -45,6 +45,12 @@ dependencies:
   uuid: ^4.5.1
   collection: ^1.19.1
   intl: ^0.20.2
+
+# Pin path_provider_foundation to a version that doesn't pull in
+# objective_c. 2.5.0+ added an FFI dep via objective_c whose XCFramework
+# bundles simulator slices that App Store Connect rejects on upload.
+dependency_overrides:
+  path_provider_foundation: 2.4.0
 
 dev_dependencies:
   flutter_test:
