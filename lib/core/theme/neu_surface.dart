@@ -32,8 +32,10 @@ class NeuRaised extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final blur = 14.0 * intensity;
-    final offset = 5.0 * intensity;
+    // Keep the shadow tight so neighbouring pillows don't bleed haloes
+    // into each other in dense lists or filter rows.
+    final blur = 8.0 * intensity;
+    final offset = 3.0 * intensity;
     return Container(
       padding: padding,
       decoration: BoxDecoration(

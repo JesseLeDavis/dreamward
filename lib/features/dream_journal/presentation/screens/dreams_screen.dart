@@ -164,7 +164,7 @@ class _FilterBar extends StatelessWidget {
                         }
                       },
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 12),
 
                     // Character filter button
                     _FilterButton(
@@ -245,13 +245,13 @@ class _FilterButton extends StatelessWidget {
       onTap: onTap,
       child: NeuRaised(
         radius: 10,
-        intensity: 0.6,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        intensity: 0.7,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             TerminalGlyph(glyph, size: 12, color: AppColors.textMuted),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Text(label,
                 style: AppTypography.tag.copyWith(color: AppColors.textMuted)),
           ],
