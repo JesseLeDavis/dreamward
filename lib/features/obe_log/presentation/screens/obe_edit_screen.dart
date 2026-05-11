@@ -396,8 +396,9 @@ class _BorderedTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.backgroundDeep,
-        border: Border.all(color: AppColors.borderNormal),
+        color: AppColors.borderNormal,
+        border: Border.all(color: AppColors.borderStrong.withValues(alpha: 0.6)),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
         controller: controller,
@@ -411,6 +412,8 @@ class _BorderedTextField extends StatelessWidget {
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
+          filled: true,
+          fillColor: Colors.transparent,
         ),
       ),
     );
@@ -439,8 +442,9 @@ class _DateSection extends StatelessWidget {
               vertical: 12,
             ),
             decoration: BoxDecoration(
-              color: AppColors.backgroundDeep,
-              border: Border.all(color: AppColors.borderNormal),
+              color: AppColors.borderNormal,
+              border: Border.all(color: AppColors.borderStrong.withValues(alpha: 0.6)),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
               children: [
@@ -489,13 +493,14 @@ class _ChipSelector extends StatelessWidget {
               onTap: () => onSelect(i),
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                 decoration: BoxDecoration(
                   color: active ? AppColors.amberMuted : Colors.transparent,
                   border: Border.all(
                     color:
                         active ? AppColors.amber : AppColors.borderSubtle,
                   ),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   options[i],
@@ -541,12 +546,13 @@ class _NullableChipSelector extends StatelessWidget {
               onTap: () => onSelect(i),
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                 decoration: BoxDecoration(
                   color: active ? AppColors.amberMuted : Colors.transparent,
                   border: Border.all(
                     color: active ? AppColors.amber : AppColors.borderSubtle,
                   ),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   options[i],
@@ -578,12 +584,13 @@ class _OnsetToggle extends StatelessWidget {
         GestureDetector(
           onTap: () => onChanged(!reached),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
             decoration: BoxDecoration(
               color: reached ? AppColors.amberMuted : Colors.transparent,
               border: Border.all(
                 color: reached ? AppColors.amber : AppColors.borderSubtle,
               ),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               reached ? 'YES' : 'NO',

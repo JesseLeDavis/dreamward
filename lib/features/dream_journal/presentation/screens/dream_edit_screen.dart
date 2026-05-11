@@ -382,8 +382,9 @@ class _BorderedTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.backgroundDeep,
-        border: Border.all(color: AppColors.borderNormal),
+        color: AppColors.borderNormal,
+        border: Border.all(color: AppColors.borderStrong.withValues(alpha: 0.6)),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
         controller: controller,
@@ -397,6 +398,8 @@ class _BorderedTextField extends StatelessWidget {
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
+          filled: true,
+          fillColor: Colors.transparent,
         ),
       ),
     );
@@ -425,8 +428,9 @@ class _DateSection extends StatelessWidget {
               vertical: 10,
             ),
             decoration: BoxDecoration(
-              color: AppColors.backgroundDeep,
-              border: Border.all(color: AppColors.borderNormal),
+              color: AppColors.borderNormal,
+              border: Border.all(color: AppColors.borderStrong.withValues(alpha: 0.6)),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
               children: [
@@ -472,12 +476,13 @@ class _TypeSection extends StatelessWidget {
             return GestureDetector(
               onTap: () => onSelect(i),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                 decoration: BoxDecoration(
                   color: active ? AppColors.amberMuted : Colors.transparent,
                   border: Border.all(
                     color: active ? AppColors.amber : AppColors.borderSubtle,
                   ),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   labels[i],
@@ -529,7 +534,10 @@ class _ClaritySection extends StatelessWidget {
                 width: 44,
                 height: 32,
                 margin: const EdgeInsets.only(right: 4),
-                color: active ? AppColors.amber : AppColors.borderStrong,
+                decoration: BoxDecoration(
+                  color: active ? AppColors.amber : AppColors.borderStrong,
+                  borderRadius: BorderRadius.circular(6),
+                ),
               ),
             );
           }),
@@ -594,9 +602,10 @@ class _EntitySection extends StatelessWidget {
               onTap: onAdd,
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   border: Border.all(color: AppColors.borderStrong),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   '+ ADD',
@@ -628,12 +637,13 @@ class _EntityChip extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: color),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 4, 4, 4),
+            padding: const EdgeInsets.fromLTRB(10, 4, 4, 4),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

@@ -98,6 +98,7 @@ class _CharacterNewBodyState extends State<_CharacterNewBody> {
               decoration: BoxDecoration(
                 color: AppColors.backgroundSurface,
                 border: Border.all(color: AppColors.borderNormal),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
@@ -207,8 +208,9 @@ class _BorderedTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.backgroundDeep,
-        border: Border.all(color: AppColors.borderNormal),
+        color: AppColors.borderNormal,
+        border: Border.all(color: AppColors.borderStrong.withValues(alpha: 0.6)),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
         controller: controller,

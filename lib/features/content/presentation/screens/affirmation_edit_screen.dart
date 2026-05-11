@@ -151,8 +151,11 @@ class _AffirmationEditScreenState extends State<AffirmationEditScreen> {
                     const SizedBox(height: 6),
                     Container(
                       decoration: BoxDecoration(
-                        color: AppColors.backgroundDeep,
-                        border: Border.all(color: AppColors.borderNormal),
+                        color: AppColors.borderNormal,
+                        border: Border.all(
+                          color: AppColors.borderStrong.withValues(alpha: 0.6),
+                        ),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: TextField(
                         controller: _controller,
@@ -169,6 +172,8 @@ class _AffirmationEditScreenState extends State<AffirmationEditScreen> {
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
+                          filled: true,
+                          fillColor: Colors.transparent,
                         ),
                       ),
                     ),

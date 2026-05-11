@@ -297,6 +297,7 @@ class _DreamDetailScreenState extends State<DreamDetailScreen> {
               decoration: BoxDecoration(
                 color: AppColors.amberMuted,
                 border: Border.all(color: AppColors.amberDim),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 children: [

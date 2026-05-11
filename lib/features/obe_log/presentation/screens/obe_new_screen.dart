@@ -6,6 +6,7 @@ import '../../../../core/database/app_database.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/neu_surface.dart';
 import '../../../../core/widgets/signal_loader.dart';
 import '../../../../core/widgets/terminal_dialog.dart';
 import '../../../../core/widgets/terminal_glyph.dart';
@@ -32,13 +33,8 @@ class ObeNewScreen extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Body
-// ---------------------------------------------------------------------------
-
 class _ObeNewBody extends StatefulWidget {
   const _ObeNewBody({this.prefillDate});
-
   final String? prefillDate;
 
   @override
@@ -52,23 +48,14 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
 
   late DateTime _sessionDate;
 
-  // 0=ATTEMPTED, 1=PARTIAL, 2=CLEAN
-  int _entryState = 0;
-
-  // 0=DELIBERATE, 1=AMBIENT, 2=BRIDGE
-  int _sessionType = 0;
-
-  // null = not recorded; 0=PHASE I, 1=PHASE II, 2=PHASE III, 3=PHASE IV
-  int? _focusLevel;
-
-  // onset
+  int _entryState = 0;       // 0=ATTEMPTED, 1=PARTIAL, 2=CLEAN
+  int _sessionType = 0;       // 0=DELIBERATE, 1=AMBIENT, 2=BRIDGE
+  int? _focusLevel;           // null=not recorded, 0..3
   bool _onsetReached = false;
+  int? _onsetIntensity;       // null=not recorded, 1=TRACE..3=SURGE
+  int? _fieldType;            // null=not recorded, 0=LOCAL..2=PARALLEL
 
-  // null = not recorded; 1=TRACE, 2=STRONG, 3=SURGE (only valid when _onsetReached)
-  int? _onsetIntensity;
-
-  // null = not recorded; 0=LOCAL, 1=EXPANDED, 2=PARALLEL
-  int? _fieldType;
+  bool _detailsExpanded = false;
 
   static const _outcomeLabels = ['ATTEMPTED', 'PARTIAL', 'CLEAN'];
   static const _typeLabels = ['DELIBERATE', 'AMBIENT', 'BRIDGE'];
@@ -125,7 +112,6 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
       );
       return;
     }
-
     context.read<ObeEntryCubit>().saveObeLog(
           description: description,
           sessionDate: _sessionDate,
@@ -162,6 +148,25 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
     );
   }
 
+  String get _detailsSummary {
+    final parts = <String>[
+      _typeLabels[_sessionType],
+      _outcomeLabels[_entryState],
+    ];
+    if (_focusLevel != null) parts.add(_focusLabels[_focusLevel!]);
+    if (_onsetReached) {
+      if (_onsetIntensity != null) {
+        parts.add('ONSET · ${_intensityLabels[_onsetIntensity! - 1]}');
+      } else {
+        parts.add('ONSET');
+      }
+    }
+    if (_fieldType != null) parts.add(_fieldTypeLabels[_fieldType!]);
+    if (_techniqueController.text.trim().isNotEmpty) parts.add('TECH');
+    if (_targetController.text.trim().isNotEmpty) parts.add('TARGET');
+    return parts.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<ObeEntryCubit, ObeEntryState>(
@@ -186,117 +191,131 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
           if (discard) navigator.pop();
         },
         child: Scaffold(
-        backgroundColor: AppColors.backgroundBase,
-        appBar: _buildAppBar(),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.screenH,
-            vertical: AppSpacing.screenV,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Date
-              _DateSection(dateString: _dateString, onTap: _pickDate),
-              const SizedBox(height: AppSpacing.sectionGap),
-
-              // Experience notes — capture first, classify after.
-              _LabeledField(
-                label: 'EXPERIENCE NOTES',
-                child: _BorderedTextField(
-                  controller: _experienceController,
-                  hintText: '// describe what you found',
-                  maxLines: null,
-                  minLines: 10,
-                  narrative: true,
+          backgroundColor: AppColors.backgroundBase,
+          appBar: _buildAppBar(),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Hero: experience notes.
+                NeuInset(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                  child: TextField(
+                    controller: _experienceController,
+                    autofocus: true,
+                    onChanged: (_) => setState(() {}),
+                    maxLines: null,
+                    minLines: 10,
+                    cursorColor: AppColors.amber,
+                    style: AppTypography.neuBody(),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      contentPadding: EdgeInsets.zero,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      hintText: 'describe what you found…',
+                      hintStyle: AppTypography.neuHint(),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.sectionGap),
+                const SizedBox(height: 16),
 
-              // Technique
-              _LabeledField(
-                label: 'TECHNIQUE',
-                child: _BorderedTextField(
-                  controller: _techniqueController,
-                  hintText: '---',
-                  maxLines: 1,
+                _DateTile(date: _dateString, onTap: _pickDate),
+                const SizedBox(height: 16),
+
+                _DetailsExpander(
+                  expanded: _detailsExpanded,
+                  summary: _detailsSummary,
+                  onToggle: () => setState(
+                      () => _detailsExpanded = !_detailsExpanded),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.sectionGap),
 
-              // Session type
-              _ChipSelector(
-                label: 'SESSION TYPE',
-                options: _typeLabels,
-                selected: _sessionType,
-                onSelect: (i) => setState(() => _sessionType = i),
-              ),
-              const SizedBox(height: AppSpacing.sectionGap),
-
-              // Outcome
-              _ChipSelector(
-                label: 'OUTCOME',
-                options: _outcomeLabels,
-                selected: _entryState,
-                onSelect: (i) => setState(() => _entryState = i),
-              ),
-              const SizedBox(height: AppSpacing.sectionGap),
-
-              // Focus Level
-              _NullableChipSelector(
-                label: 'FOCUS LEVEL',
-                options: _focusLabels,
-                selected: _focusLevel,
-                onSelect: (i) => setState(() => _focusLevel = i),
-              ),
-              const SizedBox(height: AppSpacing.sectionGap),
-
-              // Onset reached toggle
-              _OnsetToggle(
-                reached: _onsetReached,
-                onChanged: (v) => setState(() {
-                  _onsetReached = v;
-                  if (!v) _onsetIntensity = null;
-                }),
-              ),
-              const SizedBox(height: AppSpacing.sectionGap),
-
-              // Onset intensity (only when onset reached)
-              if (_onsetReached) ...[
-                _NullableChipSelector(
-                  label: 'ONSET INTENSITY',
-                  options: _intensityLabels,
-                  selected: _onsetIntensity != null
-                      ? _onsetIntensity! - 1
-                      : null,
-                  onSelect: (i) =>
-                      setState(() => _onsetIntensity = i + 1),
-                ),
-                const SizedBox(height: AppSpacing.sectionGap),
+                if (_detailsExpanded) ...[
+                  const SizedBox(height: 16),
+                  NeuInset(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _ChipSelector(
+                          label: 'SESSION TYPE',
+                          options: _typeLabels,
+                          selected: _sessionType,
+                          onSelect: (i) =>
+                              setState(() => _sessionType = i),
+                        ),
+                        const SizedBox(height: 18),
+                        _ChipSelector(
+                          label: 'OUTCOME',
+                          options: _outcomeLabels,
+                          selected: _entryState,
+                          onSelect: (i) => setState(() => _entryState = i),
+                        ),
+                        const SizedBox(height: 18),
+                        _NullableChipSelector(
+                          label: 'FOCUS LEVEL',
+                          options: _focusLabels,
+                          selected: _focusLevel,
+                          onSelect: (i) => setState(() {
+                            _focusLevel = i == _focusLevel ? null : i;
+                          }),
+                        ),
+                        const SizedBox(height: 18),
+                        _OnsetToggle(
+                          reached: _onsetReached,
+                          onChanged: (v) => setState(() {
+                            _onsetReached = v;
+                            if (!v) _onsetIntensity = null;
+                          }),
+                        ),
+                        if (_onsetReached) ...[
+                          const SizedBox(height: 18),
+                          _NullableChipSelector(
+                            label: 'ONSET INTENSITY',
+                            options: _intensityLabels,
+                            selected: _onsetIntensity != null
+                                ? _onsetIntensity! - 1
+                                : null,
+                            onSelect: (i) => setState(() {
+                              _onsetIntensity =
+                                  (i + 1 == _onsetIntensity) ? null : i + 1;
+                            }),
+                          ),
+                        ],
+                        const SizedBox(height: 18),
+                        _NullableChipSelector(
+                          label: 'FIELD TYPE',
+                          options: _fieldTypeLabels,
+                          selected: _fieldType,
+                          onSelect: (i) => setState(() {
+                            _fieldType = i == _fieldType ? null : i;
+                          }),
+                        ),
+                        const SizedBox(height: 22),
+                        _LabeledNeuInput(
+                          label: 'TECHNIQUE',
+                          controller: _techniqueController,
+                          hintText: '(optional)',
+                          onChanged: (_) => setState(() {}),
+                        ),
+                        const SizedBox(height: 16),
+                        _LabeledNeuInput(
+                          label: 'PRE-SESSION TARGET',
+                          controller: _targetController,
+                          hintText: '(optional)',
+                          onChanged: (_) => setState(() {}),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
-
-              // Field type
-              _NullableChipSelector(
-                label: 'FIELD TYPE',
-                options: _fieldTypeLabels,
-                selected: _fieldType,
-                onSelect: (i) => setState(() => _fieldType = i),
-              ),
-              const SizedBox(height: AppSpacing.sectionGap),
-
-              // Pre-session target
-              _LabeledField(
-                label: 'PRE-SESSION TARGET',
-                child: _BorderedTextField(
-                  controller: _targetController,
-                  hintText: '---',
-                  maxLines: 1,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-            ],
+            ),
           ),
-        ),
         ),
       ),
     );
@@ -304,9 +323,11 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.backgroundDeep,
+      backgroundColor: AppColors.backgroundBase,
+      elevation: 0,
       leading: IconButton(
-        icon: const TerminalGlyph(Glyphs.close, size: 16, color: AppColors.textSecondary),
+        icon: const TerminalGlyph(Glyphs.close,
+            size: 16, color: AppColors.textSecondary),
         onPressed: () => Navigator.of(context).maybePop(),
       ),
       title: Text('LOG SESSION', style: AppTypography.heading),
@@ -314,126 +335,181 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
         BlocBuilder<ObeEntryCubit, ObeEntryState>(
           builder: (context, state) {
             final saving = state is ObeEntrySaving;
-            return TextButton(
-              onPressed: saving ? null : _save,
-              child: saving
-                  ? const MiniSignalLoader()
-                  : Text(
-                      'SAVE',
-                      style: AppTypography.label.copyWith(
-                        color: AppColors.amber,
+            return Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: TextButton(
+                onPressed: saving ? null : _save,
+                child: saving
+                    ? const MiniSignalLoader()
+                    : Text(
+                        'SAVE',
+                        style: AppTypography.label.copyWith(
+                          color: AppColors.amber,
+                        ),
                       ),
-                    ),
+              ),
             );
           },
         ),
       ],
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
-        child: Container(height: 1, color: AppColors.borderSubtle),
-      ),
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Shared sub-widgets
+// Sub-widgets
 // ---------------------------------------------------------------------------
 
-class _LabeledField extends StatelessWidget {
-  const _LabeledField({required this.label, required this.child});
-
-  final String label;
-  final Widget child;
+class _NeuLabel extends StatelessWidget {
+  const _NeuLabel(this.text);
+  final String text;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppTypography.label),
-        const SizedBox(height: 6),
-        child,
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        text,
+        style: AppTypography.label.copyWith(color: AppColors.textSecondary),
+      ),
     );
   }
 }
 
-class _BorderedTextField extends StatelessWidget {
-  const _BorderedTextField({
-    required this.controller,
-    this.hintText,
-    this.maxLines = 1,
-    this.minLines,
-    this.narrative = false,
-  });
+class _DateTile extends StatelessWidget {
+  const _DateTile({required this.date, required this.onTap});
 
-  final TextEditingController controller;
-  final String? hintText;
-  final int? maxLines;
-  final int? minLines;
-  final bool narrative;
+  final String date;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.backgroundDeep,
-        border: Border.all(color: AppColors.borderNormal),
-      ),
-      child: TextField(
-        controller: controller,
-        style: narrative ? AppTypography.narrativeBody : AppTypography.body,
-        maxLines: maxLines,
-        minLines: minLines,
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: AppTypography.hint,
-          contentPadding: const EdgeInsets.all(AppSpacing.cardPad),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: NeuRaised(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Text(
+              'SESSION DATE',
+              style: AppTypography.label,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              date,
+              style: AppTypography.timestamp
+                  .copyWith(color: AppColors.textPrimary),
+            ),
+            const Spacer(),
+            const TerminalGlyph(
+              Glyphs.calendar,
+              size: 14,
+              color: AppColors.textSecondary,
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _DateSection extends StatelessWidget {
-  const _DateSection({required this.dateString, required this.onTap});
+class _DetailsExpander extends StatelessWidget {
+  const _DetailsExpander({
+    required this.expanded,
+    required this.summary,
+    required this.onToggle,
+  });
 
-  final String dateString;
-  final VoidCallback onTap;
+  final bool expanded;
+  final String summary;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onToggle,
+      behavior: HitTestBehavior.opaque,
+      child: NeuRaised(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        intensity: 0.85,
+        child: Row(
+          children: [
+            Text(
+              'DETAILS',
+              style: AppTypography.label.copyWith(
+                color: expanded ? AppColors.amber : AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                summary,
+                style: AppTypography.timestamp
+                    .copyWith(color: AppColors.textMuted),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Transform.rotate(
+              angle: expanded ? 1.5708 : 0,
+              child: const TerminalGlyph(
+                Glyphs.chevronRight,
+                size: 12,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LabeledNeuInput extends StatelessWidget {
+  const _LabeledNeuInput({
+    required this.label,
+    required this.controller,
+    this.hintText,
+    this.onChanged,
+  });
+
+  final String label;
+  final TextEditingController controller;
+  final String? hintText;
+  final ValueChanged<String>? onChanged;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('SESSION DATE', style: AppTypography.label),
+        _NeuLabel(label),
         const SizedBox(height: 6),
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.cardPad,
-              vertical: 12,
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.borderNormal,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: AppColors.borderStrong.withValues(alpha: 0.6),
+              width: 1,
             ),
-            decoration: BoxDecoration(
-              color: AppColors.backgroundDeep,
-              border: Border.all(color: AppColors.borderNormal),
-            ),
-            child: Row(
-              children: [
-                Text(dateString, style: AppTypography.timestamp),
-                const Spacer(),
-                const TerminalGlyph(
-                  Glyphs.calendar,
-                  size: 12,
-                  color: AppColors.textMuted,
-                ),
-              ],
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: TextField(
+            controller: controller,
+            onChanged: onChanged,
+            style: AppTypography.body,
+            decoration: InputDecoration(
+              isDense: true,
+              filled: true,
+              fillColor: Colors.transparent,
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 8),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              hintText: hintText,
+              hintStyle: AppTypography.hint,
             ),
           ),
         ),
@@ -442,7 +518,6 @@ class _DateSection extends StatelessWidget {
   }
 }
 
-/// Inline definitions surfaced via (?) tap.
 const _vocabDefs = <String, List<List<String>>>{
   'SESSION TYPE': [
     ['DELIBERATE', 'Sat down with the express intent to leave the body. Clock time set aside; technique chosen in advance.'],
@@ -450,7 +525,7 @@ const _vocabDefs = <String, List<List<String>>>{
     ['BRIDGE', 'Caught a transition (waking, falling asleep, brief rouse) and worked it into a session in-progress.'],
   ],
   'OUTCOME': [
-    ['ATTEMPTED', 'Set up the session but didn\'t reach onset or separation. Logged anyway — attempts are data.'],
+    ['ATTEMPTED', "Set up the session but didn't reach onset or separation. Logged anyway — attempts are data."],
     ['PARTIAL', 'Onset occurred or some shift was felt; not a clean exit. Vibrations, paralysis, partial separation.'],
     ['CLEAN', 'Full separation from the body or clear non-local awareness. The thing happened.'],
   ],
@@ -477,19 +552,19 @@ void _showDefinition(BuildContext context, String label) {
   if (entries == null) return;
   showModalBottomSheet<void>(
     context: context,
-    backgroundColor: AppColors.backgroundSurface,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    backgroundColor: AppColors.backgroundRaised,
+    shape: const RoundedRectangleBorder(
+      borderRadius:
+          BorderRadius.vertical(top: Radius.circular(16)),
+    ),
     builder: (ctx) => Container(
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.borderNormal)),
-      ),
-      padding: const EdgeInsets.all(AppSpacing.cardPad),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: AppTypography.heading),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text('// field reference', style: AppTypography.signalText),
           const SizedBox(height: AppSpacing.md),
           for (final entry in entries) ...[
@@ -510,19 +585,21 @@ class _LabelWithHelp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasDef = _vocabDefs.containsKey(label);
-    if (!hasDef) return Text(label, style: AppTypography.label);
+    if (!hasDef) return _NeuLabel(label);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label, style: AppTypography.label),
+        _NeuLabel(label),
         const SizedBox(width: 6),
         GestureDetector(
           onTap: () => _showDefinition(context, label),
           behavior: HitTestBehavior.opaque,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.borderSubtle),
+              border: Border.all(color: AppColors.borderStrong),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               '?',
@@ -557,31 +634,16 @@ class _ChipSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _LabelWithHelp(label: label),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Wrap(
-          spacing: 6,
-          runSpacing: 6,
+          spacing: 8,
+          runSpacing: 8,
           children: List.generate(options.length, (i) {
             final active = i == selected;
-            return GestureDetector(
+            return _SelectorChip(
+              label: options[i],
+              active: active,
               onTap: () => onSelect(i),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: active ? AppColors.amberMuted : Colors.transparent,
-                  border: Border.all(
-                    color:
-                        active ? AppColors.amber : AppColors.borderSubtle,
-                  ),
-                ),
-                child: Text(
-                  options[i],
-                  style: AppTypography.tag.copyWith(
-                    color: active ? AppColors.amber : AppColors.textMuted,
-                  ),
-                ),
-              ),
             );
           }),
         ),
@@ -590,8 +652,6 @@ class _ChipSelector extends StatelessWidget {
   }
 }
 
-/// Same as [_ChipSelector] but selection is nullable — tapping the active chip
-/// deselects it (sets selected to null).
 class _NullableChipSelector extends StatelessWidget {
   const _NullableChipSelector({
     required this.label,
@@ -602,12 +662,7 @@ class _NullableChipSelector extends StatelessWidget {
 
   final String label;
   final List<String> options;
-
-  /// The currently selected index, or null when nothing is selected.
   final int? selected;
-
-  /// Called with the tapped index. If the same chip is tapped again,
-  /// the parent should set selected to null to deselect.
   final ValueChanged<int> onSelect;
 
   @override
@@ -616,30 +671,16 @@ class _NullableChipSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _LabelWithHelp(label: label),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Wrap(
-          spacing: 6,
-          runSpacing: 6,
+          spacing: 8,
+          runSpacing: 8,
           children: List.generate(options.length, (i) {
             final active = i == selected;
-            return GestureDetector(
+            return _SelectorChip(
+              label: options[i],
+              active: active,
               onTap: () => onSelect(i),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: active ? AppColors.amberMuted : Colors.transparent,
-                  border: Border.all(
-                    color: active ? AppColors.amber : AppColors.borderSubtle,
-                  ),
-                ),
-                child: Text(
-                  options[i],
-                  style: AppTypography.tag.copyWith(
-                    color: active ? AppColors.amber : AppColors.textMuted,
-                  ),
-                ),
-              ),
             );
           }),
         ),
@@ -648,7 +689,47 @@ class _NullableChipSelector extends StatelessWidget {
   }
 }
 
-/// Toggle row for onset reached / not reached.
+class _SelectorChip extends StatelessWidget {
+  const _SelectorChip({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final pad = const EdgeInsets.symmetric(horizontal: 14, vertical: 9);
+    final child = Text(
+      label,
+      style: AppTypography.tag.copyWith(
+        color: active ? AppColors.amber : AppColors.textSecondary,
+        fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+      ),
+    );
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: active
+          ? NeuInset(
+              padding: pad,
+              radius: 10,
+              accentBorder: true,
+              child: child,
+            )
+          : NeuRaised(
+              padding: pad,
+              radius: 10,
+              intensity: 0.7,
+              child: child,
+            ),
+    );
+  }
+}
+
 class _OnsetToggle extends StatelessWidget {
   const _OnsetToggle({required this.reached, required this.onChanged});
 
@@ -659,25 +740,12 @@ class _OnsetToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text('ONSET REACHED', style: AppTypography.label),
+        const _NeuLabel('ONSET REACHED'),
         const Spacer(),
-        GestureDetector(
+        _SelectorChip(
+          label: reached ? 'YES' : 'NO',
+          active: reached,
           onTap: () => onChanged(!reached),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: reached ? AppColors.amberMuted : Colors.transparent,
-              border: Border.all(
-                color: reached ? AppColors.amber : AppColors.borderSubtle,
-              ),
-            ),
-            child: Text(
-              reached ? 'YES' : 'NO',
-              style: AppTypography.tag.copyWith(
-                color: reached ? AppColors.amber : AppColors.textMuted,
-              ),
-            ),
-          ),
         ),
       ],
     );
