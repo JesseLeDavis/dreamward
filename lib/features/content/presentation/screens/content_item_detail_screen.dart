@@ -5,6 +5,7 @@ import '../../../../core/database/app_database.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/neu_surface.dart';
 import '../../../../core/widgets/terminal_glyph.dart';
 
 class ContentItemDetailScreen extends StatefulWidget {
@@ -125,14 +126,14 @@ class _ContentItemDetailScreenState extends State<ContentItemDetailScreen> {
           // Excerpt
           if (item.excerpt != null && item.excerpt!.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.lg),
-            Container(
-              width: double.infinity,
+            NeuRaised(
+              radius: 12,
+              intensity: 0.8,
               padding: const EdgeInsets.all(AppSpacing.cardPad),
-              decoration: BoxDecoration(
-                color: AppColors.backgroundSurface,
-                border: Border.all(color: AppColors.borderNormal),
+              child: SizedBox(
+                width: double.infinity,
+                child: Text(item.excerpt!, style: AppTypography.bodyMuted),
               ),
-              child: Text(item.excerpt!, style: AppTypography.bodyMuted),
             ),
           ],
 
@@ -208,9 +209,10 @@ class _MetaTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.borderStrong),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Text(label, style: AppTypography.tag),
     );

@@ -7,6 +7,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/neu_surface.dart';
 import '../../../../core/widgets/empty_readout.dart';
 import '../../../../core/widgets/signal_loader.dart';
 import '../../../../core/widgets/terminal_glyph.dart';
@@ -162,93 +163,66 @@ class _ContentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.backgroundSurface,
-          border: Border.all(color: AppColors.borderNormal),
-        ),
+      child: NeuRaised(
+        radius: 14,
+        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header row
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.cardPad,
-                vertical: 10,
-              ),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: AppColors.borderSubtle),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    item.title.toUpperCase(),
+                    style: AppTypography.label,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      item.title.toUpperCase(),
-                      style: AppTypography.label,
-                      overflow: TextOverflow.ellipsis,
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: onToggleFavorite,
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: TerminalGlyph(
+                      item.isFavorited
+                          ? Glyphs.starFilled
+                          : Glyphs.starEmpty,
+                      size: 14,
+                      color: item.isFavorited
+                          ? AppColors.amber
+                          : AppColors.textMuted,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: onToggleFavorite,
-                    behavior: HitTestBehavior.opaque,
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: TerminalGlyph(
-                        item.isFavorited
-                            ? Glyphs.starFilled
-                            : Glyphs.starEmpty,
-                        size: 14,
-                        color: item.isFavorited
-                            ? AppColors.amber
-                            : AppColors.textMuted,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-
-            // Body
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.cardPad),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (item.excerpt != null && item.excerpt!.isNotEmpty) ...[
-                    Text(
-                      item.excerpt!,
-                      style: AppTypography.bodyMuted,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-
-                  // Meta row: difficulty + duration
-                  Row(
-                    children: [
-                      if (_difficultyLabel.isNotEmpty)
-                        _MetaTag(label: _difficultyLabel),
-                      if (_difficultyLabel.isNotEmpty &&
-                          item.estimatedDurationMinutes != null)
-                        const SizedBox(width: 6),
-                      if (item.estimatedDurationMinutes != null)
-                        _MetaTag(
-                            label:
-                                '${item.estimatedDurationMinutes} MIN'),
-                      const Spacer(),
-                      const TerminalGlyph(
-                        Glyphs.chevronRight,
-                        size: 14,
-                        color: AppColors.textMuted,
-                      ),
-                    ],
-                  ),
-                ],
+            const SizedBox(height: 10),
+            if (item.excerpt != null && item.excerpt!.isNotEmpty) ...[
+              Text(
+                item.excerpt!,
+                style: AppTypography.bodyMuted,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
+              const SizedBox(height: 10),
+            ],
+            Row(
+              children: [
+                if (_difficultyLabel.isNotEmpty)
+                  _MetaTag(label: _difficultyLabel),
+                if (_difficultyLabel.isNotEmpty &&
+                    item.estimatedDurationMinutes != null)
+                  const SizedBox(width: 6),
+                if (item.estimatedDurationMinutes != null)
+                  _MetaTag(label: '${item.estimatedDurationMinutes} MIN'),
+                const Spacer(),
+                const TerminalGlyph(
+                  Glyphs.chevronRight,
+                  size: 14,
+                  color: AppColors.textMuted,
+                ),
+              ],
             ),
           ],
         ),
@@ -269,9 +243,10 @@ class _MetaTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.borderStrong),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Text(label, style: AppTypography.tag),
     );

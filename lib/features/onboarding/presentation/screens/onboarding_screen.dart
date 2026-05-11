@@ -206,6 +206,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             color: isActive
                                 ? AppColors.amber
                                 : Colors.transparent,
+                            shape: BoxShape.circle,
                             border: Border.all(
                               color: isActive
                                   ? AppColors.amber
@@ -230,6 +231,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                         decoration: BoxDecoration(
                           border: Border.all(color: AppColors.amber),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
                           'NEXT →',
@@ -248,7 +250,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           horizontal: 20,
                           vertical: 10,
                         ),
-                        color: AppColors.amber,
+                        decoration: BoxDecoration(
+                          color: AppColors.amber,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         child: Text(
                           'BEGIN →',
                           style: AppTypography.labelAmber.copyWith(
@@ -281,7 +286,9 @@ class _PhaseBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.borderNormal),
+        borderRadius: BorderRadius.circular(12),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Row(
         children: List.generate(_phases.length, (i) {
           final isLast = i == _phases.length - 1;
@@ -343,6 +350,7 @@ class _OnsetIndicator extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.borderNormal),
         color: AppColors.backgroundSurface,
+        borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.all(AppSpacing.cardPad),
       child: Column(

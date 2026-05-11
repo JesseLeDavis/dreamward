@@ -7,6 +7,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/neu_surface.dart';
 import '../../../../core/widgets/empty_readout.dart';
 import '../../../../core/widgets/signal_loader.dart';
 import '../../../../core/widgets/terminal_dialog.dart';
@@ -129,11 +130,9 @@ class _AffirmationRow extends StatelessWidget {
     return GestureDetector(
       onTap: onEdit,
       behavior: HitTestBehavior.opaque,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.backgroundSurface,
-          border: Border.all(color: AppColors.borderNormal),
-        ),
+      child: NeuRaised(
+        radius: 14,
+        intensity: 0.85,
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.cardPad,
           vertical: 12,
@@ -154,13 +153,14 @@ class _AffirmationRow extends StatelessWidget {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                            horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           border: Border.all(
                             color: readOnly
                                 ? AppColors.borderSubtle
                                 : AppColors.amberDim,
                           ),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           readOnly ? 'BUILT-IN' : 'CUSTOM',
