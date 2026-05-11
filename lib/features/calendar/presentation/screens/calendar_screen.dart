@@ -369,47 +369,40 @@ class _DayCell extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: isCurrentMonth ? onTap : null,
-      child: Stack(
-        children: [
-          // Today frame — amber border drawn over the cell.
-          if (isToday)
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Container(
-                  margin: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    border: Border.all(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Day number — wrapped in an amber pill on today, otherwise plain.
+            Container(
+              padding: isToday
+                  ? const EdgeInsets.symmetric(horizontal: 6, vertical: 2)
+                  : EdgeInsets.zero,
+              decoration: isToday
+                  ? BoxDecoration(
                       color: AppColors.amber,
-                      width: 1.5,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                      borderRadius: BorderRadius.circular(8),
+                    )
+                  : null,
+              child: Text(
+                date.day.toString().padLeft(2, '0'),
+                style: AppTypography.body.copyWith(
+                  color: isToday ? AppColors.textInverse : dayColor,
+                  fontSize: 12,
+                  fontWeight: isToday ? FontWeight.w700 : FontWeight.w400,
                 ),
               ),
             ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  date.day.toString().padLeft(2, '0'),
-                  style: AppTypography.body.copyWith(
-                    color: dayColor,
-                    fontSize: 12,
-                  ),
-                ),
-                const Spacer(),
-                _IndicatorStrip(
-                  hasDream: hasDream,
-                  hasObe: hasObe,
-                  hasRundown: hasRundown,
-                  dimmed: !isCurrentMonth,
-                ),
-              ],
+            const Spacer(),
+            _IndicatorStrip(
+              hasDream: hasDream,
+              hasObe: hasObe,
+              hasRundown: hasRundown,
+              dimmed: !isCurrentMonth,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
