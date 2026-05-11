@@ -51,11 +51,12 @@ class _TodayScreenState extends State<TodayScreen> {
   }
 
   Future<void> _loadAffirmations() async {
-    // contentType 1 = affirmation
+    // contentType 1 = affirmation. Use body — the actual declaration —
+    // not title, which is just metadata ("Dream Recall Affirmation").
     final items = await _db.contentDao.watchContentByType(1).first;
     if (!mounted || items.isEmpty) return;
     setState(() {
-      _affirmations = items.map((c) => c.title).toList();
+      _affirmations = items.map((c) => c.body).toList();
     });
   }
 
@@ -286,9 +287,17 @@ class _AffirmationSection extends StatelessWidget {
       ),
       contentPadding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.cardPad,
-        vertical: 18,
+        vertical: 20,
       ),
-      child: Text(affirmation, style: AppTypography.displayAmber),
+      child: Text(
+        affirmation,
+        style: AppTypography.body.copyWith(
+          fontSize: 15,
+          color: AppColors.amberGlow,
+          height: 1.6,
+          letterSpacing: 0.2,
+        ),
+      ),
     );
   }
 }
