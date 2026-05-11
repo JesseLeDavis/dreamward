@@ -143,36 +143,29 @@ abstract final class AppTypography {
       );
 
   // -------------------------------------------------------------------------
-  // Notebook surface — paired with PaperPage / PaperColors.
-  // Serif (Lora) for written voice; pairs with the mono labels above for
-  // structural chrome on a vellum page.
+  // Neumorphic surface — paired with NeuColors / NeuRaised / NeuInset.
   // -------------------------------------------------------------------------
 
-  /// Long-form body on a notebook page — walnut ink, generous line-height.
-  static TextStyle notebookBody({Color? color}) => GoogleFonts.lora(
-        fontSize: 16,
-        fontWeight: FontWeight.w400,
-        color: color ?? const Color(0xFF2B2418),
-        letterSpacing: 0.1,
-        height: 1.6,
-      );
-
-  /// Page title — italic serif, like a hand-written heading.
-  static TextStyle notebookTitle({Color? color}) => GoogleFonts.lora(
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        fontStyle: FontStyle.italic,
-        color: color ?? const Color(0xFF2B2418),
-        letterSpacing: 0.1,
-        height: 1.4,
-      );
-
-  /// Margin-note / hint on a notebook page — italic serif, muted ink.
-  static TextStyle notebookHint({Color? color}) => GoogleFonts.lora(
+  static TextStyle neuBody({Color? color}) => GoogleFonts.inter(
         fontSize: 15,
         fontWeight: FontWeight.w400,
-        fontStyle: FontStyle.italic,
-        color: color ?? const Color(0xFF8A7E60),
+        color: color ?? const Color(0xFFD4C89A),
+        letterSpacing: 0.1,
+        height: 1.55,
+      );
+
+  static TextStyle neuTitle({Color? color}) => GoogleFonts.inter(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: color ?? const Color(0xFFD4C89A),
+        letterSpacing: 0.1,
+        height: 1.3,
+      );
+
+  static TextStyle neuHint({Color? color}) => GoogleFonts.inter(
+        fontSize: 15,
+        fontWeight: FontWeight.w400,
+        color: color ?? const Color(0xFF545040),
         letterSpacing: 0.1,
         height: 1.5,
       );

@@ -3,9 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../core/database/app_database.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/theme/paper_surface.dart';
+import '../../../../core/theme/neu_surface.dart';
 import '../../../../core/widgets/signal_loader.dart';
 import '../../../../core/widgets/terminal_dialog.dart';
 import '../../../../core/widgets/terminal_glyph.dart';
@@ -34,13 +33,8 @@ class DreamNewScreen extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Body
-// ---------------------------------------------------------------------------
-
 class _DreamNewBody extends StatefulWidget {
   const _DreamNewBody({this.prefillDate});
-
   final String? prefillDate;
 
   @override
@@ -58,6 +52,8 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
 
   List<DreamTag> _selectedTags = [];
   List<DreamCharacter> _selectedCharacters = [];
+
+  bool _detailsExpanded = false;
 
   static const _typeLabels = ['NORMAL', 'LUCID', 'RECURRING', 'NIGHTMARE'];
   static const _clarityLabels = [
@@ -93,7 +89,7 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
     try {
       return Color(int.parse(hex.replaceFirst('#', '0xFF')));
     } catch (_) {
-      return PaperColors.inkAccent;
+      return NeuColors.accent;
     }
   }
 
@@ -159,6 +155,22 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
     );
   }
 
+  /// One-line summary of current detail values — shown on the collapsed
+  /// DETAILS row so the user can see what defaults are in play without
+  /// expanding.
+  String get _detailsSummary {
+    final parts = <String>[
+      _typeLabels[_dreamType],
+      _clarityLabels[_clarity - 1],
+    ];
+    if (_dreamType == 1 && _achievedLucidity) parts.add('LUCID');
+    if (_selectedTags.isNotEmpty) parts.add('${_selectedTags.length} TAG');
+    if (_selectedCharacters.isNotEmpty) {
+      parts.add('${_selectedCharacters.length} CHAR');
+    }
+    return parts.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<DreamEntryCubit, DreamEntryState>(
@@ -183,76 +195,91 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
           if (discard) navigator.pop();
         },
         child: Scaffold(
-          backgroundColor: AppColors.backgroundBase,
+          backgroundColor: NeuColors.surfaceBase,
           appBar: _buildAppBar(),
-          body: PaperPage(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _DateStrip(
-                    dateString: _dateString,
-                    onTap: _pickDate,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Hero entry field — ruled notebook page.
-                  _NotebookEntryField(
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Hero: dream entry field. Capture first, structure later.
+                NeuInset(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                  child: TextField(
                     controller: _descriptionController,
+                    autofocus: true,
                     onChanged: (_) => setState(() {}),
+                    maxLines: null,
+                    minLines: 10,
+                    cursorColor: NeuColors.accent,
+                    style: AppTypography.neuBody(),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      contentPadding: EdgeInsets.zero,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      hintText: 'what do you remember…',
+                      hintStyle: AppTypography.neuHint(),
+                    ),
                   ),
-                  const SizedBox(height: 24),
+                ),
+                const SizedBox(height: 16),
 
-                  // Title — below the entry, like a caption.
-                  _TitleField(controller: _titleController),
-                  const SizedBox(height: 28),
+                // Title — optional, secondary.
+                NeuInset(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: TextField(
+                    controller: _titleController,
+                    style: AppTypography.neuTitle(),
+                    cursorColor: NeuColors.accent,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      contentPadding: EdgeInsets.zero,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      hintText: 'title (auto from first line)',
+                      hintStyle: AppTypography.neuHint(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
 
-                  // Metadata: type underline + clarity dots
-                  _NotebookLabel('TYPE'),
-                  const SizedBox(height: 8),
-                  _TypeUnderlineRow(
-                    labels: _typeLabels,
-                    selected: _dreamType,
-                    onSelect: (i) => setState(() {
+                // Date — small raised tile.
+                _NeuDateTile(date: _dateString, onTap: _pickDate),
+                const SizedBox(height: 16),
+
+                // DETAILS expander — collapses Type/Clarity/Lucidity/Tags/Characters.
+                _DetailsExpander(
+                  expanded: _detailsExpanded,
+                  summary: _detailsSummary,
+                  onToggle: () =>
+                      setState(() => _detailsExpanded = !_detailsExpanded),
+                ),
+                if (_detailsExpanded) ...[
+                  const SizedBox(height: 16),
+                  _DetailsPanel(
+                    typeLabels: _typeLabels,
+                    selectedType: _dreamType,
+                    onTypeSelect: (i) => setState(() {
                       _dreamType = i;
                       if (i != 1) _achievedLucidity = false;
                     }),
-                  ),
-                  const SizedBox(height: 22),
-
-                  _NotebookLabel('CLARITY'),
-                  const SizedBox(height: 8),
-                  _ClarityDotsRow(
                     clarity: _clarity,
-                    label: _clarityLabels[_clarity - 1],
-                    onSelect: (i) => setState(() => _clarity = i),
-                  ),
-
-                  // Lucidity stamp — only for LUCID type.
-                  if (_dreamType == 1) ...[
-                    const SizedBox(height: 22),
-                    _LucidityStampToggle(
-                      stamped: _achievedLucidity,
-                      onToggle: () => setState(
-                          () => _achievedLucidity = !_achievedLucidity),
-                    ),
-                  ],
-
-                  const SizedBox(height: 28),
-                  _NotebookLabel('TAGS'),
-                  const SizedBox(height: 8),
-                  _MarginNoteChips(
-                    chips: _selectedTags
-                        .map((t) => _InkChip(
-                              label: t.name.toUpperCase(),
-                              color: _parseTagColor(t.color),
-                              onRemove: () =>
-                                  setState(() => _selectedTags.remove(t)),
-                            ))
-                        .toList(),
-                    addLabel: '+ tag',
-                    onAdd: () async {
+                    clarityLabel: _clarityLabels[_clarity - 1],
+                    onClaritySelect: (i) => setState(() => _clarity = i),
+                    showLucidity: _dreamType == 1,
+                    lucidityOn: _achievedLucidity,
+                    onLucidityToggle: () => setState(
+                        () => _achievedLucidity = !_achievedLucidity),
+                    tags: _selectedTags,
+                    onTagsAdd: () async {
                       final result = await showTagPicker(
                         context,
                         initialSelected: _selectedTags,
@@ -261,22 +288,11 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
                         setState(() => _selectedTags = result);
                       }
                     },
-                  ),
-
-                  const SizedBox(height: 22),
-                  _NotebookLabel('CHARACTERS'),
-                  const SizedBox(height: 8),
-                  _MarginNoteChips(
-                    chips: _selectedCharacters
-                        .map((c) => _InkChip(
-                              label: c.name.toUpperCase(),
-                              color: PaperColors.inkSecondary,
-                              onRemove: () => setState(
-                                  () => _selectedCharacters.remove(c)),
-                            ))
-                        .toList(),
-                    addLabel: '+ character',
-                    onAdd: () async {
+                    onTagRemove: (t) =>
+                        setState(() => _selectedTags.remove(t)),
+                    parseTagColor: _parseTagColor,
+                    characters: _selectedCharacters,
+                    onCharactersAdd: () async {
                       final result = await showCharacterPicker(
                         context,
                         initialSelected: _selectedCharacters,
@@ -285,9 +301,11 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
                         setState(() => _selectedCharacters = result);
                       }
                     },
+                    onCharacterRemove: (c) =>
+                        setState(() => _selectedCharacters.remove(c)),
                   ),
                 ],
-              ),
+              ],
             ),
           ),
         ),
@@ -297,62 +315,66 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.backgroundDeep,
+      backgroundColor: NeuColors.surfaceBase,
+      elevation: 0,
       leading: IconButton(
         icon: const TerminalGlyph(Glyphs.close,
-            size: 16, color: AppColors.textSecondary),
+            size: 16, color: NeuColors.inkSecondary),
         onPressed: () => Navigator.of(context).maybePop(),
       ),
-      title: Text('LOG DREAM', style: AppTypography.heading),
+      title: Text(
+        'LOG DREAM',
+        style: AppTypography.heading.copyWith(color: NeuColors.inkPrimary),
+      ),
       actions: [
         BlocBuilder<DreamEntryCubit, DreamEntryState>(
           builder: (context, state) {
             final saving = state is DreamEntrySaving;
-            return TextButton(
-              onPressed: saving ? null : _save,
-              child: saving
-                  ? const MiniSignalLoader()
-                  : Text(
-                      'SAVE',
-                      style: AppTypography.label.copyWith(
-                        color: AppColors.amber,
+            return Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: TextButton(
+                onPressed: saving ? null : _save,
+                child: saving
+                    ? const MiniSignalLoader()
+                    : Text(
+                        'SAVE',
+                        style: AppTypography.label.copyWith(
+                          color: NeuColors.accent,
+                        ),
                       ),
-                    ),
+              ),
             );
           },
         ),
       ],
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
-        child: Container(height: 1, color: AppColors.borderSubtle),
-      ),
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Notebook sub-widgets
+// Neu sub-widgets
 // ---------------------------------------------------------------------------
 
-class _NotebookLabel extends StatelessWidget {
-  const _NotebookLabel(this.text);
+class _NeuLabel extends StatelessWidget {
+  const _NeuLabel(this.text);
   final String text;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: AppTypography.label.copyWith(
-        color: PaperColors.inkSecondary,
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        text,
+        style: AppTypography.label.copyWith(color: NeuColors.inkSecondary),
       ),
     );
   }
 }
 
-class _DateStrip extends StatelessWidget {
-  const _DateStrip({required this.dateString, required this.onTap});
+class _NeuDateTile extends StatelessWidget {
+  const _NeuDateTile({required this.date, required this.onTap});
 
-  final String dateString;
+  final String date;
   final VoidCallback onTap;
 
   @override
@@ -360,151 +382,189 @@ class _DateStrip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
+      child: NeuRaised(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Text(
+              'DATE',
+              style: AppTypography.label.copyWith(
+                color: NeuColors.inkSecondary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              date,
+              style: AppTypography.timestamp.copyWith(
+                color: NeuColors.inkPrimary,
+              ),
+            ),
+            const Spacer(),
+            const TerminalGlyph(
+              Glyphs.calendar,
+              size: 14,
+              color: NeuColors.inkSecondary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailsExpander extends StatelessWidget {
+  const _DetailsExpander({
+    required this.expanded,
+    required this.summary,
+    required this.onToggle,
+  });
+
+  final bool expanded;
+  final String summary;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onToggle,
+      behavior: HitTestBehavior.opaque,
+      child: NeuRaised(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        intensity: 0.85,
+        child: Row(
+          children: [
+            Text(
+              'DETAILS',
+              style: AppTypography.label.copyWith(
+                color: expanded
+                    ? NeuColors.accent
+                    : NeuColors.inkSecondary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                summary,
+                style: AppTypography.timestamp.copyWith(
+                  color: NeuColors.inkMuted,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Transform.rotate(
+              angle: expanded ? 1.5708 : 0, // 90° when expanded
+              child: const TerminalGlyph(
+                Glyphs.chevronRight,
+                size: 12,
+                color: NeuColors.inkSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailsPanel extends StatelessWidget {
+  const _DetailsPanel({
+    required this.typeLabels,
+    required this.selectedType,
+    required this.onTypeSelect,
+    required this.clarity,
+    required this.clarityLabel,
+    required this.onClaritySelect,
+    required this.showLucidity,
+    required this.lucidityOn,
+    required this.onLucidityToggle,
+    required this.tags,
+    required this.onTagsAdd,
+    required this.onTagRemove,
+    required this.parseTagColor,
+    required this.characters,
+    required this.onCharactersAdd,
+    required this.onCharacterRemove,
+  });
+
+  final List<String> typeLabels;
+  final int selectedType;
+  final ValueChanged<int> onTypeSelect;
+  final int clarity;
+  final String clarityLabel;
+  final ValueChanged<int> onClaritySelect;
+  final bool showLucidity;
+  final bool lucidityOn;
+  final VoidCallback onLucidityToggle;
+  final List<DreamTag> tags;
+  final VoidCallback onTagsAdd;
+  final ValueChanged<DreamTag> onTagRemove;
+  final Color Function(String hex) parseTagColor;
+  final List<DreamCharacter> characters;
+  final VoidCallback onCharactersAdd;
+  final ValueChanged<DreamCharacter> onCharacterRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return NeuInset(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const _NotebookLabel('DATE'),
-              const SizedBox(width: 10),
-              Text(
-                dateString,
-                style: AppTypography.timestamp.copyWith(
-                  color: PaperColors.inkPrimary,
-                ),
-              ),
-              const Spacer(),
-              const TerminalGlyph(
-                Glyphs.calendar,
-                size: 12,
-                color: PaperColors.inkSecondary,
-              ),
-            ],
+          const _NeuLabel('TYPE'),
+          const SizedBox(height: 10),
+          _NeuTypeRow(
+            labels: typeLabels,
+            selected: selectedType,
+            onSelect: onTypeSelect,
           ),
-          const SizedBox(height: 6),
-          const PaperRule(),
+          const SizedBox(height: 18),
+          const _NeuLabel('CLARITY'),
+          const SizedBox(height: 10),
+          _NeuClarityRow(
+            clarity: clarity,
+            label: clarityLabel,
+            onSelect: onClaritySelect,
+          ),
+          if (showLucidity) ...[
+            const SizedBox(height: 18),
+            _NeuLuciditySwitch(on: lucidityOn, onToggle: onLucidityToggle),
+          ],
+          const SizedBox(height: 22),
+          const _NeuLabel('TAGS'),
+          const SizedBox(height: 10),
+          _NeuChipsRow(
+            chips: tags
+                .map((t) => _NeuChip(
+                      label: t.name.toUpperCase(),
+                      color: parseTagColor(t.color),
+                      onRemove: () => onTagRemove(t),
+                    ))
+                .toList(),
+            addLabel: '+ ADD',
+            onAdd: onTagsAdd,
+          ),
+          const SizedBox(height: 18),
+          const _NeuLabel('CHARACTERS'),
+          const SizedBox(height: 10),
+          _NeuChipsRow(
+            chips: characters
+                .map((c) => _NeuChip(
+                      label: c.name.toUpperCase(),
+                      color: NeuColors.inkSecondary,
+                      onRemove: () => onCharacterRemove(c),
+                    ))
+                .toList(),
+            addLabel: '+ ADD',
+            onAdd: onCharactersAdd,
+          ),
         ],
       ),
     );
   }
 }
 
-/// The hero: a ruled notebook page that grows as the user writes.
-class _NotebookEntryField extends StatelessWidget {
-  const _NotebookEntryField({
-    required this.controller,
-    required this.onChanged,
-  });
-
-  final TextEditingController controller;
-  final ValueChanged<String> onChanged;
-
-  static const double _lineHeight = 28;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return CustomPaint(
-          painter: _RuledLinesPainter(lineHeight: _lineHeight),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: _lineHeight * 10),
-            child: TextField(
-              controller: controller,
-              onChanged: onChanged,
-              maxLines: null,
-              minLines: 10,
-              cursorColor: PaperColors.inkAccent,
-              style: AppTypography.notebookBody(),
-              decoration: InputDecoration(
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                hintText: 'what do you remember…',
-                hintStyle: AppTypography.notebookHint(),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _RuledLinesPainter extends CustomPainter {
-  const _RuledLinesPainter({required this.lineHeight});
-  final double lineHeight;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = PaperColors.ruleLine
-      ..strokeWidth = 1;
-    var y = lineHeight;
-    while (y < size.height) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-      y += lineHeight;
-    }
-  }
-
-  @override
-  bool shouldRepaint(_RuledLinesPainter oldDelegate) =>
-      oldDelegate.lineHeight != lineHeight;
-}
-
-class _TitleField extends StatelessWidget {
-  const _TitleField({required this.controller});
-  final TextEditingController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Container(height: 1, color: PaperColors.paperFold),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Text(
-                'titled',
-                style: AppTypography.notebookHint(
-                  color: PaperColors.inkSecondary,
-                ),
-              ),
-            ),
-            Expanded(
-              child: Container(height: 1, color: PaperColors.paperFold),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        TextField(
-          controller: controller,
-          style: AppTypography.notebookTitle(),
-          textAlign: TextAlign.center,
-          cursorColor: PaperColors.inkAccent,
-          decoration: InputDecoration(
-            isDense: true,
-            contentPadding: const EdgeInsets.symmetric(vertical: 8),
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            hintText: '(auto from first line)',
-            hintStyle: AppTypography.notebookHint().copyWith(fontSize: 14),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _TypeUnderlineRow extends StatelessWidget {
-  const _TypeUnderlineRow({
+class _NeuTypeRow extends StatelessWidget {
+  const _NeuTypeRow({
     required this.labels,
     required this.selected,
     required this.onSelect,
@@ -517,43 +577,42 @@ class _TypeUnderlineRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      spacing: 18,
+      spacing: 10,
       runSpacing: 10,
       children: List.generate(labels.length, (i) {
         final active = i == selected;
+        final pad = const EdgeInsets.symmetric(horizontal: 14, vertical: 9);
+        final child = Text(
+          labels[i],
+          style: AppTypography.tag.copyWith(
+            color: active ? NeuColors.accent : NeuColors.inkSecondary,
+            fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+          ),
+        );
         return GestureDetector(
           onTap: () => onSelect(i),
           behavior: HitTestBehavior.opaque,
-          child: Container(
-            padding: const EdgeInsets.only(bottom: 4),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: active
-                      ? PaperColors.inkAccent
-                      : Colors.transparent,
-                  width: 2,
+          child: active
+              ? NeuInset(
+                  padding: pad,
+                  radius: 10,
+                  accentBorder: true,
+                  child: child,
+                )
+              : NeuRaised(
+                  padding: pad,
+                  radius: 10,
+                  intensity: 0.7,
+                  child: child,
                 ),
-              ),
-            ),
-            child: Text(
-              labels[i],
-              style: AppTypography.tag.copyWith(
-                color: active
-                    ? PaperColors.inkAccent
-                    : PaperColors.inkSecondary,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w400,
-              ),
-            ),
-          ),
         );
       }),
     );
   }
 }
 
-class _ClarityDotsRow extends StatelessWidget {
-  const _ClarityDotsRow({
+class _NeuClarityRow extends StatelessWidget {
+  const _NeuClarityRow({
     required this.clarity,
     required this.label,
     required this.onSelect,
@@ -570,47 +629,52 @@ class _ClarityDotsRow extends StatelessWidget {
         ...List.generate(5, (i) {
           final level = i + 1;
           final active = level <= clarity;
-          return GestureDetector(
-            onTap: () => onSelect(level),
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              width: 28,
-              height: 28,
-              alignment: Alignment.center,
-              child: Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: active
-                      ? PaperColors.inkAccent
-                      : Colors.transparent,
-                  border: Border.all(
-                    color: PaperColors.inkSecondary,
-                    width: 1,
-                  ),
-                ),
+          return Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: GestureDetector(
+              onTap: () => onSelect(level),
+              behavior: HitTestBehavior.opaque,
+              child: SizedBox(
+                width: 34,
+                height: 34,
+                child: active
+                    ? NeuInset(
+                        radius: 17,
+                        accentBorder: true,
+                        child: Center(
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              color: NeuColors.accent,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      )
+                    : NeuRaised(
+                        radius: 17,
+                        intensity: 0.6,
+                        child: const SizedBox.expand(),
+                      ),
               ),
             ),
           );
         }),
-        const SizedBox(width: 8),
+        const SizedBox(width: 4),
         Text(
           label,
-          style: AppTypography.label.copyWith(color: PaperColors.inkAccent),
+          style: AppTypography.label.copyWith(color: NeuColors.accent),
         ),
       ],
     );
   }
 }
 
-class _LucidityStampToggle extends StatelessWidget {
-  const _LucidityStampToggle({
-    required this.stamped,
-    required this.onToggle,
-  });
+class _NeuLuciditySwitch extends StatelessWidget {
+  const _NeuLuciditySwitch({required this.on, required this.onToggle});
 
-  final bool stamped;
+  final bool on;
   final VoidCallback onToggle;
 
   @override
@@ -620,40 +684,53 @@ class _LucidityStampToggle extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Row(
         children: [
-          const _NotebookLabel('LUCIDITY'),
-          const SizedBox(width: 16),
-          if (stamped)
-            Transform.rotate(
-              angle: -0.055, // ~ -3°
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  border: Border.all(color: PaperColors.stampRed, width: 2),
-                ),
-                child: Text(
-                  'ACHIEVED',
-                  style: AppTypography.tag.copyWith(
-                    color: PaperColors.stampRed,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 2.5,
+          const _NeuLabel('LUCIDITY'),
+          const SizedBox(width: 12),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 180),
+            child: on
+                ? NeuInset(
+                    key: const ValueKey('on'),
+                    accentBorder: true,
+                    radius: 10,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 7,
+                    ),
+                    child: Text(
+                      'ACHIEVED',
+                      style: AppTypography.tag.copyWith(
+                        color: NeuColors.accent,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2.0,
+                      ),
+                    ),
+                  )
+                : NeuRaised(
+                    key: const ValueKey('off'),
+                    radius: 10,
+                    intensity: 0.7,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 7,
+                    ),
+                    child: Text(
+                      'TAP TO LOG',
+                      style: AppTypography.tag.copyWith(
+                        color: NeuColors.inkSecondary,
+                        letterSpacing: 1.6,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            )
-          else
-            Text(
-              'tap to stamp',
-              style: AppTypography.notebookHint(),
-            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _MarginNoteChips extends StatelessWidget {
-  const _MarginNoteChips({
+class _NeuChipsRow extends StatelessWidget {
+  const _NeuChipsRow({
     required this.chips,
     required this.addLabel,
     required this.onAdd,
@@ -674,13 +751,13 @@ class _MarginNoteChips extends StatelessWidget {
         GestureDetector(
           onTap: onAdd,
           behavior: HitTestBehavior.opaque,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          child: NeuRaised(
+            radius: 8,
+            intensity: 0.6,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             child: Text(
               addLabel,
-              style: AppTypography.notebookHint(
-                color: PaperColors.inkAccent,
-              ),
+              style: AppTypography.tag.copyWith(color: NeuColors.inkSecondary),
             ),
           ),
         ),
@@ -689,8 +766,8 @@ class _MarginNoteChips extends StatelessWidget {
   }
 }
 
-class _InkChip extends StatelessWidget {
-  const _InkChip({
+class _NeuChip extends StatelessWidget {
+  const _NeuChip({
     required this.label,
     required this.color,
     required this.onRemove,
@@ -702,28 +779,39 @@ class _InkChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: color, width: 1),
-      ),
+    return NeuRaised(
+      radius: 8,
+      intensity: 0.6,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 3, 4, 3),
-            child: Text(
-              label,
-              style: AppTypography.tag.copyWith(color: color),
+            padding: const EdgeInsets.fromLTRB(10, 6, 6, 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: AppTypography.tag.copyWith(color: color),
+                ),
+              ],
             ),
           ),
           GestureDetector(
             onTap: onRemove,
             behavior: HitTestBehavior.opaque,
-            child: SizedBox(
-              width: 26,
-              height: 26,
+            child: const SizedBox(
+              width: 30,
+              height: 30,
               child: Center(
-                child: TerminalGlyph(Glyphs.close, size: 10, color: color),
+                child: TerminalGlyph(Glyphs.close,
+                    size: 11, color: NeuColors.inkMuted),
               ),
             ),
           ),
@@ -732,4 +820,3 @@ class _InkChip extends StatelessWidget {
     );
   }
 }
-

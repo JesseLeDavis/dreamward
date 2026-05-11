@@ -7,7 +7,6 @@ import 'core/di/injection.dart';
 import 'core/notifications/notification_service.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
-import 'core/widgets/boot_sequence.dart';
 import 'features/dream_journal/data/repositories/dream_entity_repository_impl.dart';
 import 'features/dream_journal/data/repositories/dream_repository_impl.dart';
 import 'features/dream_journal/presentation/bloc/dream_journal_bloc.dart';
@@ -22,19 +21,8 @@ void main() async {
   runApp(const DreamwardApp());
 }
 
-class DreamwardApp extends StatefulWidget {
+class DreamwardApp extends StatelessWidget {
   const DreamwardApp({super.key});
-
-  @override
-  State<DreamwardApp> createState() => _DreamwardAppState();
-}
-
-class _DreamwardAppState extends State<DreamwardApp> {
-  /// One-shot guard so the boot sequence plays only on the first launch in
-  /// this process — not on every hot reload or theme rebuild.
-  static bool _bootCompleted = false;
-
-  bool _ready = _bootCompleted;
 
   @override
   Widget build(BuildContext context) {
@@ -62,14 +50,6 @@ class _DreamwardAppState extends State<DreamwardApp> {
         routerConfig: createAppRouter(),
         theme: AppTheme.dark,
         debugShowCheckedModeBanner: false,
-        builder: (context, child) => _ready
-            ? (child ?? const SizedBox.shrink())
-            : BootSequence(
-                onComplete: () {
-                  _bootCompleted = true;
-                  if (mounted) setState(() => _ready = true);
-                },
-              ),
       ),
     );
   }

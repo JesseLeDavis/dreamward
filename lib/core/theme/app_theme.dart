@@ -22,7 +22,6 @@ abstract final class AppTheme {
           outlineVariant: AppColors.borderSubtle,
         ),
 
-        // Typography — all text inherits Share Tech Mono via textTheme
         textTheme: TextTheme(
           displayLarge: AppTypography.displayAmber,
           titleLarge: AppTypography.heading,
@@ -33,9 +32,9 @@ abstract final class AppTheme {
           labelSmall: AppTypography.tag,
         ),
 
-        // App bar
+        // App bar — shares surface color, no separate device-housing tier.
         appBarTheme: AppBarTheme(
-          backgroundColor: AppColors.backgroundDeep,
+          backgroundColor: AppColors.backgroundBase,
           foregroundColor: AppColors.textPrimary,
           elevation: 0,
           scrolledUnderElevation: 0,
@@ -49,11 +48,10 @@ abstract final class AppTheme {
           ),
         ),
 
-        // Bottom navigation bar — instrument housing style
+        // Bottom navigation — same surface color, thin top hairline.
         navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: AppColors.backgroundDeep,
+          backgroundColor: AppColors.backgroundBase,
           surfaceTintColor: Colors.transparent,
-          // Transparent indicator — active state shown via icon/label color only
           indicatorColor: Colors.transparent,
           indicatorShape: const RoundedRectangleBorder(),
           elevation: 0,
@@ -83,115 +81,115 @@ abstract final class AppTheme {
           space: 0,
         ),
 
-        // Cards
+        // Cards — soft pillow corners.
         cardTheme: const CardThemeData(
           color: AppColors.backgroundSurface,
           elevation: 0,
           margin: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.zero,
+            borderRadius: BorderRadius.all(Radius.circular(14)),
             side: BorderSide(color: AppColors.borderNormal),
           ),
           surfaceTintColor: Colors.transparent,
         ),
 
-        // Text inputs
+        // Text inputs — inset well style with soft corners.
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: AppColors.backgroundSurface,
+          fillColor: AppColors.borderNormal,
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          border: const OutlineInputBorder(
-            borderRadius: BorderRadius.zero,
-            borderSide: BorderSide(color: AppColors.borderNormal),
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.borderStrong),
           ),
-          enabledBorder: const OutlineInputBorder(
-            borderRadius: BorderRadius.zero,
-            borderSide: BorderSide(color: AppColors.borderNormal),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.borderStrong),
           ),
-          focusedBorder: const OutlineInputBorder(
-            borderRadius: BorderRadius.zero,
-            borderSide: BorderSide(color: AppColors.borderFocus, width: 2),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.borderFocus, width: 1.5),
           ),
-          errorBorder: const OutlineInputBorder(
-            borderRadius: BorderRadius.zero,
-            borderSide: BorderSide(color: AppColors.statusAlert),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.statusAlert),
           ),
           hintStyle: AppTypography.hint,
           labelStyle: AppTypography.label,
         ),
 
-        // Icon defaults
         iconTheme: const IconThemeData(
           color: AppColors.textSecondary,
           size: 18,
         ),
 
-        // Buttons — filled / elevated use amber
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.amber,
             foregroundColor: AppColors.textInverse,
             textStyle: AppTypography.label,
-            shape: const RoundedRectangleBorder(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.amber,
             textStyle: AppTypography.label,
-            shape: const RoundedRectangleBorder(),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             side: const BorderSide(color: AppColors.amber),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           ),
         ),
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
             foregroundColor: AppColors.amber,
             textStyle: AppTypography.label,
-            shape: const RoundedRectangleBorder(),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           ),
         ),
 
-        // Dialog defaults — square, void-black scrim, raised panel.
-        // Bespoke chrome lives in TerminalDialog; this keeps stray
-        // showDialog calls from looking like Material 3.
-        dialogTheme: const DialogThemeData(
+        // Dialog defaults — rounded pillow on the same surface.
+        dialogTheme: DialogThemeData(
           backgroundColor: AppColors.backgroundRaised,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.zero,
-            side: BorderSide(color: AppColors.borderStrong),
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: AppColors.borderStrong),
           ),
-          titleTextStyle: TextStyle(
+          titleTextStyle: const TextStyle(
             color: AppColors.amber,
             fontSize: 11,
             letterSpacing: 2.2,
             fontWeight: FontWeight.w700,
           ),
-          contentTextStyle: TextStyle(
-            color: AppColors.signalGreenDim,
-            fontSize: 12,
-            letterSpacing: 0.3,
-            height: 1.6,
+          contentTextStyle: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 13,
+            letterSpacing: 0.2,
+            height: 1.55,
           ),
           barrierColor: AppColors.voidBlack,
         ),
 
-        // SnackBar defaults — bordered strip, no rounded pill.
-        // Real notifications go through TerminalToast.
-        snackBarTheme: const SnackBarThemeData(
-          backgroundColor: AppColors.backgroundDeep,
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: AppColors.backgroundRaised,
           elevation: 0,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.zero,
-            side: BorderSide(color: AppColors.borderStrong),
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: AppColors.borderStrong),
           ),
-          contentTextStyle: TextStyle(
+          contentTextStyle: const TextStyle(
             color: AppColors.amber,
             fontSize: 11,
             letterSpacing: 1.8,
@@ -199,7 +197,6 @@ abstract final class AppTheme {
           ),
         ),
 
-        // No ripple — retro feel
         splashFactory: NoSplash.splashFactory,
         highlightColor: AppColors.amberMuted.withAlpha(60),
       );

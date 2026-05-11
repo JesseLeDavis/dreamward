@@ -1,55 +1,61 @@
 import 'package:flutter/material.dart';
 
+/// Source-of-truth color tokens. Aligned to the neumorphic surface system
+/// (see neu_surface.dart) so that scaffold/cards/app bar share one base
+/// color and depth comes from light/dark shadows, not flat fill tiers.
 abstract final class AppColors {
   // --- Backgrounds ---
-  static const Color backgroundDeep    = Color(0xFF0E0F0B); // app bar / device housing
-  static const Color backgroundBase    = Color(0xFF13140F); // scaffold
-  static const Color backgroundSurface = Color(0xFF1A1C15); // cards, tiles
-  static const Color backgroundRaised  = Color(0xFF21241A); // modals, elevated panels
+  // In the neu system everything is the same surface color; depth is
+  // shadow-driven. These tiers are kept for backwards compatibility but
+  // all point at the same color now.
+  static const Color backgroundDeep    = Color(0xFF1B1E16);
+  static const Color backgroundBase    = Color(0xFF1B1E16);
+  static const Color backgroundSurface = Color(0xFF1B1E16);
+  static const Color backgroundRaised  = Color(0xFF1B1E16);
 
   // --- Borders ---
-  static const Color borderSubtle  = Color(0xFF2A2E21); // hairline dividers
-  static const Color borderNormal  = Color(0xFF363B2A); // card borders
-  static const Color borderStrong  = Color(0xFF4A5038); // section separators
+  // Borders are now mostly invisible — shadows carry the work. These exist
+  // for dividers and subtle hairlines only.
+  static const Color borderSubtle  = Color(0xFF13150F); // hairline divider
+  static const Color borderNormal  = Color(0xFF0E1009); // card edge
+  static const Color borderStrong  = Color(0xFF06070A); // shadow-dark edge
   static const Color borderFocus   = Color(0xFFB8860B); // focused input
 
   // --- Amber accent (primary) ---
-  static const Color amber      = Color(0xFFE8A020); // primary interactive / active
-  static const Color amberDim   = Color(0xFFB87818); // pressed / inactive
-  static const Color amberGlow  = Color(0xFFF5C050); // highlight / selected
-  static const Color amberMuted = Color(0xFF3D2E08); // amber tint on surface
+  static const Color amber      = Color(0xFFE8A020);
+  static const Color amberDim   = Color(0xFFB87818);
+  static const Color amberGlow  = Color(0xFFF5C050);
+  static const Color amberMuted = Color(0xFF3D2E08);
 
   // --- Green accent (secondary) ---
-  static const Color green      = Color(0xFF7AB648); // success / "logged"
-  static const Color greenDim   = Color(0xFF4E7430); // inactive green
-  static const Color greenMuted = Color(0xFF1E2E12); // green tint on surface
+  static const Color green      = Color(0xFF7AB648);
+  static const Color greenDim   = Color(0xFF4E7430);
+  static const Color greenMuted = Color(0xFF1E2E12);
 
   // --- Phosphor signal green (received data / onset / contact states) ---
-  static const Color signalGreen      = Color(0xFF39FF14); // raw phosphor — use sparingly
-  static const Color signalGreenDim   = Color(0xFF1A7A0A); // dimmed signal / inactive
-  static const Color signalGreenMuted = Color(0xFF0D2A08); // tinted background
+  static const Color signalGreen      = Color(0xFF39FF14);
+  static const Color signalGreenDim   = Color(0xFF1A7A0A);
+  static const Color signalGreenMuted = Color(0xFF0D2A08);
 
   // --- Void / atmospheric ---
-  static const Color voidBlack    = Color(0xFF090A07); // deeper than backgroundDeep
-  static const Color amberCarrier = Color(0xFF1A1208); // barely-there amber tint for section headers
+  static const Color voidBlack    = Color(0xFF06070A);
+  static const Color amberCarrier = Color(0xFF1A1208);
 
   // --- Text ---
-  static const Color textPrimary   = Color(0xFFD4C89A); // warm off-white
-  static const Color textSecondary = Color(0xFF8A8468); // secondary info
-  static const Color textMuted     = Color(0xFF545040); // hints / placeholders
-  static const Color textInverse   = Color(0xFF0E0F0B); // text on amber fill
+  static const Color textPrimary   = Color(0xFFD4C89A);
+  static const Color textSecondary = Color(0xFF8A8468);
+  static const Color textMuted     = Color(0xFF545040);
+  static const Color textInverse   = Color(0xFF1B1E16);
 
   // --- Status ---
-  static const Color statusAlert   = Color(0xFFD45020); // nightmare / missed
-  static const Color statusSleep   = Color(0xFF6070A8); // REM / sleep science only
-  static const Color statusWarning = Color(0xFFE8A020); // same as amber
+  static const Color statusAlert   = Color(0xFFD45020);
+  static const Color statusSleep   = Color(0xFF6070A8);
+  static const Color statusWarning = Color(0xFFE8A020);
 
   // --- Dream type tag colors ---
-  // Five tones, all inside the amber / alert / sleep / muted system —
-  // no off-palette purple or secondary green leaking in from outside.
-  static const Color tagLucid      = Color(0xFFE8A020); // amber
-  static const Color tagNightmare  = Color(0xFFD45020); // alert orange
-  static const Color tagRecurring  = Color(0xFF6070A8); // sleep indigo
-  static const Color tagVivid      = Color(0xFFF5C050); // amber glow (high clarity)
-  static const Color tagFragmented = Color(0xFF545040); // muted gray
+  static const Color tagLucid      = Color(0xFFE8A020);
+  static const Color tagNightmare  = Color(0xFFD45020);
+  static const Color tagRecurring  = Color(0xFF6070A8);
+  static const Color tagVivid      = Color(0xFFF5C050);
+  static const Color tagFragmented = Color(0xFF545040);
 }

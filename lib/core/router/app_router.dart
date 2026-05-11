@@ -5,8 +5,6 @@ import 'package:go_router/go_router.dart';
 
 import '../database/app_database.dart';
 import '../theme/app_colors.dart';
-import '../widgets/scan_line_overlay.dart';
-import '../widgets/status_strip.dart';
 import '../widgets/terminal_glyph.dart';
 import '../../features/calendar/presentation/bloc/calendar_bloc.dart';
 import '../../features/calendar/presentation/screens/calendar_day_screen.dart';
@@ -377,13 +375,15 @@ class _ScaffoldWithBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ScanLineOverlay(child: navigationShell),
+      body: navigationShell,
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Persistent device readout — sits as part of the housing,
-          // not part of any individual screen.
-          const StatusStrip(),
+          // Hairline separator above the bottom nav.
+          Container(
+            height: 1,
+            color: AppColors.borderSubtle,
+          ),
           NavigationBar(
             selectedIndex: navigationShell.currentIndex,
             onDestinationSelected: (index) {
