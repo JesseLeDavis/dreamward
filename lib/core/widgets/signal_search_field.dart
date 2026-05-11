@@ -5,7 +5,8 @@ import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import 'terminal_glyph.dart';
 
-/// Shared bordered search field used in list screens (Dreams, OBE).
+/// Shared search field used in list screens (Dreams, OBE).
+/// Renders as a single rounded inset well with no nested decorations.
 class SignalSearchField extends StatelessWidget {
   const SignalSearchField({
     super.key,
@@ -22,25 +23,31 @@ class SignalSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.screenH,
-        vertical: 8,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.backgroundDeep,
-        border: Border(bottom: BorderSide(color: AppColors.borderSubtle)),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenH,
+        8,
+        AppSpacing.screenH,
+        10,
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.backgroundSurface,
-          border: Border.all(color: AppColors.borderNormal),
+          color: AppColors.borderNormal,
+          border: Border.all(
+            color: AppColors.borderStrong.withValues(alpha: 0.6),
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(12),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         child: Row(
           children: [
-            const TerminalGlyph(Glyphs.search, size: 14, color: AppColors.textSecondary),
-            const SizedBox(width: 6),
+            const TerminalGlyph(
+              Glyphs.search,
+              size: 14,
+              color: AppColors.textSecondary,
+            ),
+            const SizedBox(width: 8),
             Expanded(
               child: TextField(
                 controller: controller,
@@ -49,9 +56,13 @@ class SignalSearchField extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: hintText,
                   hintStyle: AppTypography.hint,
-                  border: InputBorder.none,
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                  filled: true,
+                  fillColor: Colors.transparent,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
                 ),
               ),
             ),
@@ -63,8 +74,11 @@ class SignalSearchField extends StatelessWidget {
                   onTap: onClear,
                   child: const Padding(
                     padding: EdgeInsets.all(4),
-                    child: TerminalGlyph(Glyphs.close,
-                        size: 12, color: AppColors.textSecondary),
+                    child: TerminalGlyph(
+                      Glyphs.close,
+                      size: 12,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 );
               },
