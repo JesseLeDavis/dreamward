@@ -267,10 +267,9 @@ class _ExpandedFilterHeader extends StatelessWidget {
       onTap: onCollapse,
       child: Container(
         height: 32,
-        color: AppColors.backgroundDeep,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
         decoration: const BoxDecoration(
-          color: AppColors.backgroundDeep,
+          color: AppColors.backgroundBase,
           border: Border(
             bottom: BorderSide(color: AppColors.borderSubtle),
           ),
