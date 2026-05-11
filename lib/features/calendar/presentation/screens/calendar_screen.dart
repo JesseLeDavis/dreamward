@@ -72,12 +72,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     ? state.summaries
                     : <String, CalendarDaySummary>{};
 
-                return _MonthGrid(
-                  focusedMonth: _focusedMonth,
-                  summaries: summaries,
-                  onDayTap: (date) => context.pushNamed(
-                    AppRoutes.calendarDay,
-                    pathParameters: {'date': _dateStr(date)},
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onHorizontalDragEnd: (details) {
+                    final v = details.primaryVelocity ?? 0;
+                    if (v < -250) {
+                      _nextMonth();
+                    } else if (v > 250) {
+                      _prevMonth();
+                    }
+                  },
+                  child: _MonthGrid(
+                    focusedMonth: _focusedMonth,
+                    summaries: summaries,
+                    onDayTap: (date) => context.pushNamed(
+                      AppRoutes.calendarDay,
+                      pathParameters: {'date': _dateStr(date)},
+                    ),
                   ),
                 );
               },

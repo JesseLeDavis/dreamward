@@ -60,18 +60,22 @@ class _ObeScreenState extends State<ObeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundBase,
-      appBar: _ObeAppBar(
-        typeFilter: _typeFilter,
-        stateFilter: _stateFilter,
-        expanded: _filtersExpanded,
-        hasActiveFilter: _typeFilter != 'ALL' || _stateFilter != 'ALL',
-        onTypeFilter: (v) => setState(() => _typeFilter = v),
-        onStateFilter: (v) => setState(() => _stateFilter = v),
-        onToggleExpanded: () =>
-            setState(() => _filtersExpanded = !_filtersExpanded),
-      ),
+      appBar: const _ObeAppBar(),
       body: Column(
         children: [
+          _CollapsedFilterBar(
+            hasActiveFilter: _typeFilter != 'ALL' || _stateFilter != 'ALL',
+            expanded: _filtersExpanded,
+            onTap: () =>
+                setState(() => _filtersExpanded = !_filtersExpanded),
+          ),
+          if (_filtersExpanded)
+            _FilterBar(
+              typeFilter: _typeFilter,
+              stateFilter: _stateFilter,
+              onTypeFilter: (v) => setState(() => _typeFilter = v),
+              onStateFilter: (v) => setState(() => _stateFilter = v),
+            ),
           SignalSearchField(
             controller: _searchController,
             onChanged: _onSearchChanged,
@@ -96,27 +100,10 @@ class _ObeScreenState extends State<ObeScreen> {
 // ---------------------------------------------------------------------------
 
 class _ObeAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _ObeAppBar({
-    required this.typeFilter,
-    required this.stateFilter,
-    required this.expanded,
-    required this.hasActiveFilter,
-    required this.onTypeFilter,
-    required this.onStateFilter,
-    required this.onToggleExpanded,
-  });
+  const _ObeAppBar();
 
-  final String typeFilter;
-  final String stateFilter;
-  final bool expanded;
-  final bool hasActiveFilter;
-  final ValueChanged<String> onTypeFilter;
-  final ValueChanged<String> onStateFilter;
-  final VoidCallback onToggleExpanded;
-
-  // 48 toolbar + (expanded: header 32 + 2 rows 72 | collapsed 38) filter bar
   @override
-  Size get preferredSize => Size.fromHeight(expanded ? 158 : 86);
+  Size get preferredSize => const Size.fromHeight(48 + 1);
 
   @override
   Widget build(BuildContext context) {
@@ -136,30 +123,8 @@ class _ObeAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ],
       bottom: PreferredSize(
-        preferredSize: Size.fromHeight(expanded ? 94 : 38),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(height: 1, color: AppColors.borderSubtle),
-            if (expanded) ...[
-              _ExpandedFilterHeader(
-                hasActiveFilter: hasActiveFilter,
-                onCollapse: onToggleExpanded,
-              ),
-              _FilterBar(
-                typeFilter: typeFilter,
-                stateFilter: stateFilter,
-                onTypeFilter: onTypeFilter,
-                onStateFilter: onStateFilter,
-              ),
-            ] else
-              _CollapsedFilterBar(
-                hasActiveFilter: hasActiveFilter,
-                onTap: onToggleExpanded,
-              ),
-            Container(height: 1, color: AppColors.borderSubtle),
-          ],
-        ),
+        preferredSize: const Size.fromHeight(1),
+        child: Container(height: 1, color: AppColors.borderSubtle),
       ),
     );
   }
@@ -215,10 +180,12 @@ class _FilterBar extends StatelessWidget {
 class _CollapsedFilterBar extends StatelessWidget {
   const _CollapsedFilterBar({
     required this.hasActiveFilter,
+    required this.expanded,
     required this.onTap,
   });
 
   final bool hasActiveFilter;
+  final bool expanded;
   final VoidCallback onTap;
 
   @override
@@ -243,48 +210,8 @@ class _CollapsedFilterBar extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            Text('EXPAND ▾', style: AppTypography.labelAmber),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ExpandedFilterHeader extends StatelessWidget {
-  const _ExpandedFilterHeader({
-    required this.hasActiveFilter,
-    required this.onCollapse,
-  });
-
-  final bool hasActiveFilter;
-  final VoidCallback onCollapse;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onCollapse,
-      child: Container(
-        height: 32,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
-        decoration: const BoxDecoration(
-          color: AppColors.backgroundBase,
-          border: Border(
-            bottom: BorderSide(color: AppColors.borderSubtle),
-          ),
-        ),
-        child: Row(
-          children: [
-            Text('FILTERS', style: AppTypography.label),
-            if (hasActiveFilter) ...[
-              const SizedBox(width: 10),
-              Text('· ACTIVE',
-                  style:
-                      AppTypography.label.copyWith(color: AppColors.amber)),
-            ],
-            const Spacer(),
-            Text('COLLAPSE ▴', style: AppTypography.labelAmber),
+            Text(expanded ? 'COLLAPSE ▴' : 'EXPAND ▾',
+                style: AppTypography.labelAmber),
           ],
         ),
       ),

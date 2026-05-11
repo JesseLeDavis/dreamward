@@ -207,6 +207,7 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
                     onChanged: (_) => setState(() {}),
                     maxLines: null,
                     minLines: 10,
+                    textCapitalization: TextCapitalization.sentences,
                     cursorColor: AppColors.amber,
                     style: AppTypography.neuBody(),
                     decoration: InputDecoration(
@@ -498,6 +499,7 @@ class _LabeledNeuInput extends StatelessWidget {
           child: TextField(
             controller: controller,
             onChanged: onChanged,
+            textCapitalization: TextCapitalization.sentences,
             style: AppTypography.body,
             decoration: InputDecoration(
               isDense: true,

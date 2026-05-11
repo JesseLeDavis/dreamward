@@ -11,7 +11,6 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/data_tag.dart';
 import '../../../../core/widgets/field_section.dart';
 import '../../../../core/widgets/signal_loader.dart';
-import '../../../../core/widgets/terminal_glyph.dart';
 
 class ObeDetailScreen extends StatefulWidget {
   const ObeDetailScreen({super.key, required this.obeId});
@@ -90,7 +89,7 @@ class _ObeDetailScreenState extends State<ObeDetailScreen> {
         actions: [
           if (!_loading && _data != null)
             IconButton(
-              icon: const TerminalGlyph(Glyphs.edit, size: 16, color: AppColors.amber),
+              icon: const Icon(Icons.edit_outlined, size: 20, color: AppColors.amber),
               onPressed: () async {
                 await context.pushNamed(
                   AppRoutes.obeEdit,

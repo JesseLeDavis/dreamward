@@ -6,6 +6,7 @@ import '../../../../core/database/app_database.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/neu_surface.dart';
 import '../../../../core/widgets/signal_loader.dart';
 import '../../../../core/widgets/terminal_glyph.dart';
 import '../../../../core/widgets/terminal_pickers.dart';
@@ -394,21 +395,21 @@ class _BorderedTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.borderNormal,
-        border: Border.all(color: AppColors.borderStrong.withValues(alpha: 0.6)),
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return NeuInset(
+      radius: 12,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: TextField(
         controller: controller,
-        style: AppTypography.body,
+        style: AppTypography.neuBody(),
+        cursorColor: NeuColors.accent,
+        textCapitalization: TextCapitalization.sentences,
         maxLines: maxLines,
         minLines: minLines,
         decoration: InputDecoration(
+          isDense: true,
           hintText: hintText,
-          hintStyle: AppTypography.hint,
-          contentPadding: const EdgeInsets.all(AppSpacing.cardPad),
+          hintStyle: AppTypography.neuHint(),
+          contentPadding: EdgeInsets.zero,
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
@@ -435,16 +436,12 @@ class _DateSection extends StatelessWidget {
         const SizedBox(height: 6),
         GestureDetector(
           onTap: onTap,
-          child: Container(
-            width: double.infinity,
+          child: NeuRaised(
+            radius: 12,
+            intensity: 0.8,
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.cardPad,
               vertical: 12,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.borderNormal,
-              border: Border.all(color: AppColors.borderStrong.withValues(alpha: 0.6)),
-              borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
               children: [
@@ -538,29 +535,13 @@ class _NullableChipSelector extends StatelessWidget {
         Text(label, style: AppTypography.label),
         const SizedBox(height: 6),
         Wrap(
-          spacing: 6,
-          runSpacing: 6,
+          spacing: 8,
+          runSpacing: 8,
           children: List.generate(options.length, (i) {
             final active = i == selected;
             return GestureDetector(
               onTap: () => onSelect(i),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                decoration: BoxDecoration(
-                  color: active ? AppColors.amberMuted : Colors.transparent,
-                  border: Border.all(
-                    color: active ? AppColors.amber : AppColors.borderSubtle,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  options[i],
-                  style: AppTypography.tag.copyWith(
-                    color: active ? AppColors.amber : AppColors.textMuted,
-                  ),
-                ),
-              ),
+              child: _NeuToggleChip(label: options[i], active: active),
             );
           }),
         ),
@@ -583,24 +564,51 @@ class _OnsetToggle extends StatelessWidget {
         const Spacer(),
         GestureDetector(
           onTap: () => onChanged(!reached),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-            decoration: BoxDecoration(
-              color: reached ? AppColors.amberMuted : Colors.transparent,
-              border: Border.all(
-                color: reached ? AppColors.amber : AppColors.borderSubtle,
-              ),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              reached ? 'YES' : 'NO',
-              style: AppTypography.tag.copyWith(
-                color: reached ? AppColors.amber : AppColors.textMuted,
-              ),
-            ),
+          child: _NeuToggleChip(
+            label: reached ? 'YES' : 'NO',
+            active: reached,
           ),
         ),
       ],
     );
+  }
+}
+
+class _NeuToggleChip extends StatelessWidget {
+  const _NeuToggleChip({required this.label, required this.active});
+
+  final String label;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return active
+        ? NeuInset(
+            radius: 10,
+            accentBorder: true,
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            child: Text(
+              label,
+              style: AppTypography.tag.copyWith(
+                color: NeuColors.accent,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.8,
+              ),
+            ),
+          )
+        : NeuRaised(
+            radius: 10,
+            intensity: 0.7,
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            child: Text(
+              label,
+              style: AppTypography.tag.copyWith(
+                color: NeuColors.inkSecondary,
+                letterSpacing: 1.6,
+              ),
+            ),
+          );
   }
 }

@@ -21,7 +21,7 @@ abstract final class AppSpacing {
 
   /// Gap between sibling raised cards in a vertical list. Slightly tighter
   /// than sectionGap so list rhythm stays denser than section rhythm.
-  static const double cardGap = 16;
+  static const double cardGap = 22;
 
   /// Standard border stroke
   static const double borderWidth = 1.0;

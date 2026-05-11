@@ -48,7 +48,6 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
 
   int _dreamType = 0;
   int _clarity = 3;
-  bool _achievedLucidity = false;
 
   List<DreamTag> _selectedTags = [];
   List<DreamCharacter> _selectedCharacters = [];
@@ -131,7 +130,7 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
           rundownDate: _dateString,
           dreamType: _dreamType,
           clarity: _clarity - 1,
-          achievedLucidity: _achievedLucidity,
+          achievedLucidity: _dreamType == 1,
           tagIds: _selectedTags.map((t) => t.id).toList(),
           characterIds: _selectedCharacters.map((c) => c.id).toList(),
         );
@@ -163,7 +162,6 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
       _typeLabels[_dreamType],
       _clarityLabels[_clarity - 1],
     ];
-    if (_dreamType == 1 && _achievedLucidity) parts.add('LUCID');
     if (_selectedTags.isNotEmpty) parts.add('${_selectedTags.length} TAG');
     if (_selectedCharacters.isNotEmpty) {
       parts.add('${_selectedCharacters.length} CHAR');
@@ -211,6 +209,7 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
                     onChanged: (_) => setState(() {}),
                     maxLines: null,
                     minLines: 10,
+                    textCapitalization: TextCapitalization.sentences,
                     cursorColor: NeuColors.accent,
                     style: AppTypography.neuBody(),
                     decoration: InputDecoration(
@@ -235,6 +234,7 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
                   child: TextField(
                     controller: _titleController,
                     style: AppTypography.neuTitle(),
+                    textCapitalization: TextCapitalization.sentences,
                     cursorColor: NeuColors.accent,
                     decoration: InputDecoration(
                       isDense: true,
@@ -267,17 +267,10 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
                   _DetailsPanel(
                     typeLabels: _typeLabels,
                     selectedType: _dreamType,
-                    onTypeSelect: (i) => setState(() {
-                      _dreamType = i;
-                      if (i != 1) _achievedLucidity = false;
-                    }),
+                    onTypeSelect: (i) => setState(() => _dreamType = i),
                     clarity: _clarity,
                     clarityLabel: _clarityLabels[_clarity - 1],
                     onClaritySelect: (i) => setState(() => _clarity = i),
-                    showLucidity: _dreamType == 1,
-                    lucidityOn: _achievedLucidity,
-                    onLucidityToggle: () => setState(
-                        () => _achievedLucidity = !_achievedLucidity),
                     tags: _selectedTags,
                     onTagsAdd: () async {
                       final result = await showTagPicker(
@@ -474,9 +467,6 @@ class _DetailsPanel extends StatelessWidget {
     required this.clarity,
     required this.clarityLabel,
     required this.onClaritySelect,
-    required this.showLucidity,
-    required this.lucidityOn,
-    required this.onLucidityToggle,
     required this.tags,
     required this.onTagsAdd,
     required this.onTagRemove,
@@ -492,9 +482,6 @@ class _DetailsPanel extends StatelessWidget {
   final int clarity;
   final String clarityLabel;
   final ValueChanged<int> onClaritySelect;
-  final bool showLucidity;
-  final bool lucidityOn;
-  final VoidCallback onLucidityToggle;
   final List<DreamTag> tags;
   final VoidCallback onTagsAdd;
   final ValueChanged<DreamTag> onTagRemove;
@@ -525,10 +512,6 @@ class _DetailsPanel extends StatelessWidget {
             label: clarityLabel,
             onSelect: onClaritySelect,
           ),
-          if (showLucidity) ...[
-            const SizedBox(height: 18),
-            _NeuLuciditySwitch(on: lucidityOn, onToggle: onLucidityToggle),
-          ],
           const SizedBox(height: 22),
           const _NeuLabel('TAGS'),
           const SizedBox(height: 10),
@@ -667,64 +650,6 @@ class _NeuClarityRow extends StatelessWidget {
           style: AppTypography.label.copyWith(color: NeuColors.accent),
         ),
       ],
-    );
-  }
-}
-
-class _NeuLuciditySwitch extends StatelessWidget {
-  const _NeuLuciditySwitch({required this.on, required this.onToggle});
-
-  final bool on;
-  final VoidCallback onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onToggle,
-      behavior: HitTestBehavior.opaque,
-      child: Row(
-        children: [
-          const _NeuLabel('LUCIDITY'),
-          const SizedBox(width: 12),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
-            child: on
-                ? NeuInset(
-                    key: const ValueKey('on'),
-                    accentBorder: true,
-                    radius: 10,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 7,
-                    ),
-                    child: Text(
-                      'ACHIEVED',
-                      style: AppTypography.tag.copyWith(
-                        color: NeuColors.accent,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 2.0,
-                      ),
-                    ),
-                  )
-                : NeuRaised(
-                    key: const ValueKey('off'),
-                    radius: 10,
-                    intensity: 0.7,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 7,
-                    ),
-                    child: Text(
-                      'TAP TO LOG',
-                      style: AppTypography.tag.copyWith(
-                        color: NeuColors.inkSecondary,
-                        letterSpacing: 1.6,
-                      ),
-                    ),
-                  ),
-          ),
-        ],
-      ),
     );
   }
 }

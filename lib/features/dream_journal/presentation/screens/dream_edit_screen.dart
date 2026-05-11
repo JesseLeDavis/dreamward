@@ -6,6 +6,7 @@ import '../../../../core/database/app_database.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/neu_surface.dart';
 import '../../../../core/widgets/signal_loader.dart';
 import '../../../../core/widgets/terminal_glyph.dart';
 import '../../../../core/widgets/terminal_pickers.dart';
@@ -53,7 +54,6 @@ class _DreamEditBodyState extends State<_DreamEditBody> {
 
   int _dreamType = 0;
   int _clarity = 3;
-  bool _achievedLucidity = false;
 
   List<DreamTag> _selectedTags = [];
   List<DreamCharacter> _selectedCharacters = [];
@@ -104,7 +104,6 @@ class _DreamEditBodyState extends State<_DreamEditBody> {
       _dreamType = dream.dreamType;
       // DB stores 0-4, UI uses 1-5
       _clarity = dream.clarity + 1;
-      _achievedLucidity = dream.achievedLucidity;
       _selectedTags = result.tags;
       _selectedCharacters = result.characters;
       setState(() => _loading = false);
@@ -166,7 +165,7 @@ class _DreamEditBodyState extends State<_DreamEditBody> {
           rundownDate: _dateString,
           dreamType: _dreamType,
           clarity: _clarity - 1, // convert 1-5 UI to 0-4 DB
-          achievedLucidity: _achievedLucidity,
+          achievedLucidity: _dreamType == 1,
           tagIds: _selectedTags.map((t) => t.id).toList(),
           characterIds: _selectedCharacters.map((c) => c.id).toList(),
         );
@@ -228,10 +227,7 @@ class _DreamEditBodyState extends State<_DreamEditBody> {
           _TypeSection(
             labels: _typeLabels,
             selected: _dreamType,
-            onSelect: (i) => setState(() {
-              _dreamType = i;
-              if (i != 1) _achievedLucidity = false;
-            }),
+            onSelect: (i) => setState(() => _dreamType = i),
           ),
           const SizedBox(height: AppSpacing.sectionGap),
           _ClaritySection(
@@ -239,13 +235,6 @@ class _DreamEditBodyState extends State<_DreamEditBody> {
             clarityLabel: _clarityLabels[_clarity - 1],
             onSelect: (i) => setState(() => _clarity = i),
           ),
-          if (_dreamType == 1) ...[
-            const SizedBox(height: AppSpacing.sectionGap),
-            _LucidToggle(
-              value: _achievedLucidity,
-              onChanged: (v) => setState(() => _achievedLucidity = v),
-            ),
-          ],
           const SizedBox(height: AppSpacing.sectionGap),
           _LabeledField(
             label: 'DREAM ENTRY',
@@ -380,21 +369,21 @@ class _BorderedTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.borderNormal,
-        border: Border.all(color: AppColors.borderStrong.withValues(alpha: 0.6)),
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return NeuInset(
+      radius: 12,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: TextField(
         controller: controller,
-        style: AppTypography.body,
+        style: AppTypography.neuBody(),
+        cursorColor: NeuColors.accent,
+        textCapitalization: TextCapitalization.sentences,
         maxLines: maxLines,
         minLines: minLines,
         decoration: InputDecoration(
+          isDense: true,
           hintText: hintText,
-          hintStyle: AppTypography.hint,
-          contentPadding: const EdgeInsets.all(AppSpacing.cardPad),
+          hintStyle: AppTypography.neuHint(),
+          contentPadding: EdgeInsets.zero,
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
@@ -421,16 +410,12 @@ class _DateSection extends StatelessWidget {
         const SizedBox(height: 6),
         GestureDetector(
           onTap: onTap,
-          child: Container(
-            width: double.infinity,
+          child: NeuRaised(
+            radius: 12,
+            intensity: 0.8,
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.cardPad,
-              vertical: 10,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.borderNormal,
-              border: Border.all(color: AppColors.borderStrong.withValues(alpha: 0.6)),
-              borderRadius: BorderRadius.circular(10),
+              vertical: 12,
             ),
             child: Row(
               children: [
@@ -469,28 +454,40 @@ class _TypeSection extends StatelessWidget {
         Text('DREAM TYPE', style: AppTypography.label),
         const SizedBox(height: 6),
         Wrap(
-          spacing: 6,
-          runSpacing: 6,
+          spacing: 8,
+          runSpacing: 8,
           children: List.generate(labels.length, (i) {
             final active = i == selected;
             return GestureDetector(
               onTap: () => onSelect(i),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                decoration: BoxDecoration(
-                  color: active ? AppColors.amberMuted : Colors.transparent,
-                  border: Border.all(
-                    color: active ? AppColors.amber : AppColors.borderSubtle,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  labels[i],
-                  style: AppTypography.tag.copyWith(
-                    color: active ? AppColors.amber : AppColors.textMuted,
-                  ),
-                ),
-              ),
+              child: active
+                  ? NeuInset(
+                      radius: 10,
+                      accentBorder: true,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 9),
+                      child: Text(
+                        labels[i],
+                        style: AppTypography.tag.copyWith(
+                          color: NeuColors.accent,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.8,
+                        ),
+                      ),
+                    )
+                  : NeuRaised(
+                      radius: 10,
+                      intensity: 0.7,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 9),
+                      child: Text(
+                        labels[i],
+                        style: AppTypography.tag.copyWith(
+                          color: NeuColors.inkSecondary,
+                          letterSpacing: 1.6,
+                        ),
+                      ),
+                    ),
             );
           }),
         ),
@@ -528,43 +525,30 @@ class _ClaritySection extends StatelessWidget {
           children: List.generate(5, (i) {
             final level = i + 1;
             final active = level <= clarity;
-            return GestureDetector(
-              onTap: () => onSelect(level),
-              child: Container(
-                width: 44,
-                height: 32,
-                margin: const EdgeInsets.only(right: 4),
-                decoration: BoxDecoration(
-                  color: active ? AppColors.amber : AppColors.borderStrong,
-                  borderRadius: BorderRadius.circular(6),
+            return Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: GestureDetector(
+                onTap: () => onSelect(level),
+                child: SizedBox(
+                  width: 44,
+                  height: 32,
+                  child: active
+                      ? DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: NeuColors.accent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const SizedBox.expand(),
+                        )
+                      : NeuRaised(
+                          radius: 8,
+                          intensity: 0.7,
+                          child: const SizedBox.expand(),
+                        ),
                 ),
               ),
             );
           }),
-        ),
-      ],
-    );
-  }
-}
-
-class _LucidToggle extends StatelessWidget {
-  const _LucidToggle({required this.value, required this.onChanged});
-
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text('ACHIEVED LUCIDITY', style: AppTypography.label),
-        const Spacer(),
-        Switch(
-          value: value,
-          onChanged: onChanged,
-          activeThumbColor: AppColors.amber,
-          inactiveThumbColor: AppColors.borderStrong,
-          inactiveTrackColor: AppColors.backgroundDeep,
         ),
       ],
     );
@@ -594,23 +578,23 @@ class _EntitySection extends StatelessWidget {
         Text(label, style: AppTypography.label),
         const SizedBox(height: 6),
         Wrap(
-          spacing: 6,
-          runSpacing: 6,
+          spacing: 8,
+          runSpacing: 8,
           children: [
             ...chips,
             GestureDetector(
               onTap: onAdd,
-              child: Container(
+              child: NeuRaised(
+                radius: 10,
+                intensity: 0.7,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.borderStrong),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
                 child: Text(
                   '+ ADD',
-                  style:
-                      AppTypography.tag.copyWith(color: AppColors.textMuted),
+                  style: AppTypography.tag.copyWith(
+                    color: NeuColors.inkSecondary,
+                    letterSpacing: 1.6,
+                  ),
                 ),
               ),
             ),
@@ -634,16 +618,14 @@ class _EntityChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: color),
-        borderRadius: BorderRadius.circular(8),
-      ),
+    return NeuRaised(
+      radius: 10,
+      intensity: 0.7,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(10, 4, 4, 4),
+            padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -653,7 +635,7 @@ class _EntityChip extends StatelessWidget {
                   decoration:
                       BoxDecoration(color: color, shape: BoxShape.circle),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Text(label, style: AppTypography.tag.copyWith(color: color)),
               ],
             ),

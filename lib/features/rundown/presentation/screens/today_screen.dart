@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,6 +15,8 @@ import '../../../../core/widgets/data_tag.dart';
 import '../../../../core/widgets/empty_readout.dart';
 import '../../../../core/widgets/field_section.dart';
 import '../../../../core/widgets/terminal_glyph.dart';
+import '../../../dream_journal/presentation/bloc/dream_journal_bloc.dart';
+import '../../../obe_log/presentation/bloc/obe_log_bloc.dart';
 
 // Fallback used only if the content library hasn't seeded yet.
 const _fallbackAffirmations = [
@@ -42,21 +47,47 @@ class _TodayScreenState extends State<TodayScreen> {
   ObeLog? _lastObe;
 
   final _db = GetIt.instance<AppDatabase>();
+  StreamSubscription<List<ContentItem>>? _affirmationsSub;
+  StreamSubscription<DreamJournalState>? _dreamsSub;
+  StreamSubscription<ObeLogState>? _obesSub;
 
   @override
   void initState() {
     super.initState();
-    _loadAffirmations().then((_) => _loadRundown());
+    _subscribeToAffirmations();
+    _loadRundown();
     _loadStats();
   }
 
-  Future<void> _loadAffirmations() async {
-    // contentType 1 = affirmation. Use body — the actual declaration —
-    // not title, which is just metadata ("Dream Recall Affirmation").
-    final items = await _db.contentDao.watchContentByType(1).first;
-    if (!mounted || items.isEmpty) return;
-    setState(() {
-      _affirmations = items.map((c) => c.body).toList();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _dreamsSub ??=
+        context.read<DreamJournalBloc>().stream.listen((_) => _loadStats());
+    _obesSub ??=
+        context.read<ObeLogBloc>().stream.listen((_) => _loadStats());
+  }
+
+  @override
+  void dispose() {
+    _affirmationsSub?.cancel();
+    _dreamsSub?.cancel();
+    _obesSub?.cancel();
+    super.dispose();
+  }
+
+  void _subscribeToAffirmations() {
+    // contentType 1 = affirmation. Stream so adds/edits/deletes propagate
+    // live without needing a hot restart.
+    _affirmationsSub =
+        _db.contentDao.watchContentByType(1).listen((items) {
+      if (!mounted || items.isEmpty) return;
+      setState(() {
+        _affirmations = items.map((c) => c.body).toList();
+        if (_affirmationIndex >= _affirmations.length) {
+          _affirmationIndex = 0;
+        }
+      });
     });
   }
 
@@ -370,6 +401,7 @@ class _IntentionSectionState extends State<_IntentionSection> {
                 ? TextField(
                     controller: _controller,
                     autofocus: true,
+                    textCapitalization: TextCapitalization.sentences,
                     style: AppTypography.body,
                     decoration: InputDecoration(
                       hintText: '// awaiting target coordinates',

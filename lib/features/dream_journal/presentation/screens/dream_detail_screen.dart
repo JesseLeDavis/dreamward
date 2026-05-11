@@ -102,7 +102,7 @@ class _DreamDetailScreenState extends State<DreamDetailScreen> {
         actions: [
           if (!_loading && _data != null)
             IconButton(
-              icon: const TerminalGlyph(Glyphs.edit, size: 16, color: AppColors.amber),
+              icon: const Icon(Icons.edit_outlined, size: 20, color: AppColors.amber),
               onPressed: () async {
                 await context.pushNamed(
                   AppRoutes.dreamEdit,
