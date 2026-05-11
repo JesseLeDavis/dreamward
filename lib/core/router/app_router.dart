@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 
 import '../database/app_database.dart';
 import '../theme/app_colors.dart';
+import '../widgets/scan_line_overlay.dart';
+import '../widgets/status_strip.dart';
+import '../widgets/terminal_glyph.dart';
 import '../../features/calendar/presentation/bloc/calendar_bloc.dart';
 import '../../features/calendar/presentation/screens/calendar_day_screen.dart';
 import '../../features/calendar/presentation/screens/calendar_screen.dart';
@@ -131,7 +134,7 @@ GoRouter createAppRouter() {
             _voidFadePage(const CharacterNewScreen()),
       ),
       GoRoute(
-        path: '/today/affirmations',
+        path: '/affirmations',
         name: AppRoutes.affirmationsManage,
         parentNavigatorKey: rootNavigatorKey,
         pageBuilder: (context, state) =>
@@ -374,12 +377,13 @@ class _ScaffoldWithBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: navigationShell,
+      body: ScanLineOverlay(child: navigationShell),
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Top border on the nav bar — retro terminal feel
-          Container(height: 1, color: AppColors.borderNormal),
+          // Persistent device readout — sits as part of the housing,
+          // not part of any individual screen.
+          const StatusStrip(),
           NavigationBar(
             selectedIndex: navigationShell.currentIndex,
             onDestinationSelected: (index) {
@@ -389,26 +393,14 @@ class _ScaffoldWithBottomNav extends StatelessWidget {
               );
             },
             destinations: [
-              _navDest(
-                label: 'TODAY',
-                icon: Icons.wb_sunny_outlined,
-                selectedIcon: Icons.wb_sunny,
-              ),
-              _navDest(
-                label: 'DREAMS',
-                icon: Icons.nights_stay_outlined,
-                selectedIcon: Icons.nights_stay,
-              ),
-              _navDest(
+              _NavDest(label: 'TODAY', glyph: Glyphs.tabToday),
+              _NavDest(label: 'DREAMS', glyph: Glyphs.tabDreams),
+              _NavDest(
                 label: 'OBE',
-                icon: Icons.blur_on_outlined,
-                selectedIcon: Icons.blur_on,
+                glyph: Glyphs.tabObe,
+                selectedGlyph: Glyphs.tabObeActive,
               ),
-              _navDest(
-                label: 'LOG',
-                icon: Icons.calendar_month_outlined,
-                selectedIcon: Icons.calendar_month,
-              ),
+              _NavDest(label: 'LOG', glyph: Glyphs.tabLog),
             ],
           ),
         ],
@@ -416,15 +408,21 @@ class _ScaffoldWithBottomNav extends StatelessWidget {
     );
   }
 
-  NavigationDestination _navDest({
+}
+
+class _NavDest extends NavigationDestination {
+  _NavDest({
     required String label,
-    required IconData icon,
-    required IconData selectedIcon,
-  }) {
-    return NavigationDestination(
-      icon: Icon(icon),
-      selectedIcon: Icon(selectedIcon),
-      label: label,
-    );
-  }
+    required String glyph,
+    String? selectedGlyph,
+  }) : super(
+          icon: TerminalGlyph(glyph,
+              size: 18, color: AppColors.textMuted),
+          selectedIcon: TerminalGlyph(
+            selectedGlyph ?? glyph,
+            size: 18,
+            color: AppColors.amber,
+          ),
+          label: label,
+        );
 }

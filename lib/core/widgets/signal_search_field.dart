@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import 'terminal_glyph.dart';
 
 /// Shared bordered search field used in list screens (Dreams, OBE).
 class SignalSearchField extends StatelessWidget {
@@ -38,7 +39,7 @@ class SignalSearchField extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Row(
           children: [
-            const Icon(Icons.search, size: 14, color: AppColors.textSecondary),
+            const TerminalGlyph(Glyphs.search, size: 14, color: AppColors.textSecondary),
             const SizedBox(width: 6),
             Expanded(
               child: TextField(
@@ -62,8 +63,8 @@ class SignalSearchField extends StatelessWidget {
                   onTap: onClear,
                   child: const Padding(
                     padding: EdgeInsets.all(4),
-                    child: Icon(Icons.close,
-                        size: 14, color: AppColors.textSecondary),
+                    child: TerminalGlyph(Glyphs.close,
+                        size: 12, color: AppColors.textSecondary),
                   ),
                 );
               },

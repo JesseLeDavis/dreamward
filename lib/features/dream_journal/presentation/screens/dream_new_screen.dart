@@ -7,7 +7,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/signal_loader.dart';
+import '../../../../core/widgets/terminal_dialog.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
 import '../../../../core/widgets/terminal_pickers.dart';
+import '../../../../core/widgets/terminal_toast.dart';
 import '../../data/repositories/dream_repository_impl.dart';
 import '../bloc/dream_entry_cubit.dart';
 import '../bloc/dream_journal_bloc.dart';
@@ -118,8 +121,10 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
   void _save() {
     final description = _descriptionController.text.trim();
     if (description.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('DREAM ENTRY IS REQUIRED.')),
+      TerminalToast.show(
+        context,
+        'DREAM ENTRY IS REQUIRED',
+        tone: ToastTone.alert,
       );
       return;
     }
@@ -149,31 +154,14 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
 
   Future<bool> _confirmDiscard() async {
     if (!_hasDraft) return true;
-    final result = await showDialog<bool>(
+    return TerminalDialog.confirm(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.backgroundSurface,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        title: Text('DISCARD DRAFT?', style: AppTypography.heading),
-        content: Text(
-          'Signal not saved. Closing now will lose this entry.',
-          style: AppTypography.signalText,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text('KEEP',
-                style: AppTypography.label.copyWith(color: AppColors.amber)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text('DISCARD',
-                style: AppTypography.label.copyWith(color: AppColors.statusAlert)),
-          ),
-        ],
-      ),
+      title: 'DISCARD DRAFT?',
+      message: 'Signal not saved. Closing now will lose this entry.',
+      confirmLabel: 'DISCARD',
+      cancelLabel: 'KEEP',
+      destructive: true,
     );
-    return result ?? false;
   }
 
   @override
@@ -183,8 +171,10 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
         if (state is DreamEntrySaved) {
           Navigator.of(context).pop();
         } else if (state is DreamEntryError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('ERROR: ${state.message}')),
+          TerminalToast.show(
+            context,
+            'ERROR: ${state.message}',
+            tone: ToastTone.alert,
           );
         }
       },
@@ -314,7 +304,7 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
     return AppBar(
       backgroundColor: AppColors.backgroundDeep,
       leading: IconButton(
-        icon: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
+        icon: const TerminalGlyph(Glyphs.close, size: 16, color: AppColors.textSecondary),
         onPressed: () => Navigator.of(context).maybePop(),
       ),
       title: Text('LOG DREAM', style: AppTypography.heading),
@@ -436,8 +426,8 @@ class _DateSection extends StatelessWidget {
               children: [
                 Text(dateString, style: AppTypography.timestamp),
                 const Spacer(),
-                const Icon(
-                  Icons.calendar_today_outlined,
+                const TerminalGlyph(
+                  Glyphs.calendar,
                   size: 12,
                   color: AppColors.textMuted,
                 ),
@@ -630,24 +620,39 @@ class _EntityChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         border: Border.all(color: color),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 4, 4, 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration:
+                      BoxDecoration(color: color, shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 6),
+                Text(label, style: AppTypography.tag.copyWith(color: color)),
+              ],
+            ),
           ),
-          const SizedBox(width: 6),
-          Text(label, style: AppTypography.tag.copyWith(color: color)),
-          const SizedBox(width: 6),
           GestureDetector(
             onTap: onRemove,
-            child: const Icon(Icons.close, size: 10, color: AppColors.textMuted),
+            behavior: HitTestBehavior.opaque,
+            child: const SizedBox(
+              width: 32,
+              height: 32,
+              child: Center(
+                child: TerminalGlyph(Glyphs.close,
+                    size: 12, color: AppColors.textMuted),
+              ),
+            ),
           ),
         ],
       ),

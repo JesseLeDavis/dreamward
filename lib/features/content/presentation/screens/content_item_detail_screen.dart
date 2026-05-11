@@ -5,6 +5,7 @@ import '../../../../core/database/app_database.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
 
 class ContentItemDetailScreen extends StatefulWidget {
   const ContentItemDetailScreen({super.key, required this.itemId});
@@ -165,9 +166,9 @@ class _ContentItemDetailScreenState extends State<ContentItemDetailScreen> {
       actions: [
         if (item != null)
           IconButton(
-            icon: Icon(
-              item.isFavorited ? Icons.star : Icons.star_outline,
-              size: 20,
+            icon: TerminalGlyph(
+              item.isFavorited ? Glyphs.starFilled : Glyphs.starEmpty,
+              size: 16,
               color: item.isFavorited ? AppColors.amber : AppColors.textMuted,
             ),
             onPressed: _toggleFavorite,

@@ -45,9 +45,11 @@ abstract final class AppColors {
   static const Color statusWarning = Color(0xFFE8A020); // same as amber
 
   // --- Dream type tag colors ---
-  static const Color tagLucid      = Color(0xFFE8A020);
-  static const Color tagNightmare  = Color(0xFFD45020);
-  static const Color tagRecurring  = Color(0xFF9060C8);
-  static const Color tagVivid      = Color(0xFF7AB648);
-  static const Color tagFragmented = Color(0xFF545040);
+  // Five tones, all inside the amber / alert / sleep / muted system —
+  // no off-palette purple or secondary green leaking in from outside.
+  static const Color tagLucid      = Color(0xFFE8A020); // amber
+  static const Color tagNightmare  = Color(0xFFD45020); // alert orange
+  static const Color tagRecurring  = Color(0xFF6070A8); // sleep indigo
+  static const Color tagVivid      = Color(0xFFF5C050); // amber glow (high clarity)
+  static const Color tagFragmented = Color(0xFF545040); // muted gray
 }

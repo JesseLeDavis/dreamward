@@ -7,6 +7,9 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/empty_readout.dart';
+import '../../../../core/widgets/signal_loader.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
 
 class ExploreCategoryScreen extends StatefulWidget {
   const ExploreCategoryScreen({super.key, required this.slug});
@@ -51,9 +54,7 @@ class _ExploreCategoryScreenState extends State<ExploreCategoryScreen> {
         stream: _stream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: _TerminalLoader(),
-            );
+            return const Center(child: SignalLoader());
           }
 
           if (snapshot.hasError) {
@@ -68,10 +69,12 @@ class _ExploreCategoryScreenState extends State<ExploreCategoryScreen> {
           final items = snapshot.data ?? [];
 
           if (items.isEmpty) {
-            return Center(
-              child: Text(
-                'NO ITEMS IN THIS CATEGORY.',
-                style: AppTypography.labelAmber,
+            return const Padding(
+              padding: EdgeInsets.all(AppSpacing.lg),
+              child: EmptyReadout(
+                label: 'NO ITEMS — CHANNEL EMPTY',
+                sublabel: 'No content available in this category.',
+                height: 130,
               ),
             );
           }
@@ -193,9 +196,11 @@ class _ContentCard extends StatelessWidget {
                     behavior: HitTestBehavior.opaque,
                     child: Padding(
                       padding: const EdgeInsets.all(4),
-                      child: Icon(
-                        item.isFavorited ? Icons.star : Icons.star_outline,
-                        size: 16,
+                      child: TerminalGlyph(
+                        item.isFavorited
+                            ? Glyphs.starFilled
+                            : Glyphs.starEmpty,
+                        size: 14,
                         color: item.isFavorited
                             ? AppColors.amber
                             : AppColors.textMuted,
@@ -235,8 +240,8 @@ class _ContentCard extends StatelessWidget {
                             label:
                                 '${item.estimatedDurationMinutes} MIN'),
                       const Spacer(),
-                      const Icon(
-                        Icons.chevron_right,
+                      const TerminalGlyph(
+                        Glyphs.chevronRight,
                         size: 14,
                         color: AppColors.textMuted,
                       ),
@@ -273,15 +278,3 @@ class _MetaTag extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Terminal-style loading indicator
-// ---------------------------------------------------------------------------
-
-class _TerminalLoader extends StatelessWidget {
-  const _TerminalLoader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Text('LOADING...', style: AppTypography.labelAmber);
-  }
-}

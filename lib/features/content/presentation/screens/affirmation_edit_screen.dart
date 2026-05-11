@@ -6,6 +6,10 @@ import '../../../../core/database/app_database.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/signal_loader.dart';
+import '../../../../core/widgets/terminal_dialog.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
+import '../../../../core/widgets/terminal_toast.dart';
 
 /// Create or edit a user-owned affirmation. Built-ins are not routed here.
 class AffirmationEditScreen extends StatefulWidget {
@@ -54,39 +58,23 @@ class _AffirmationEditScreenState extends State<AffirmationEditScreen> {
 
   Future<bool> _confirmDiscard() async {
     if (!_hasDraft) return true;
-    final result = await showDialog<bool>(
+    return TerminalDialog.confirm(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.backgroundSurface,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        title: Text('DISCARD CHANGES?', style: AppTypography.heading),
-        content: Text(
-          'Unsaved edits will be lost.',
-          style: AppTypography.signalText,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text('KEEP',
-                style: AppTypography.label.copyWith(color: AppColors.amber)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text('DISCARD',
-                style: AppTypography.label
-                    .copyWith(color: AppColors.statusAlert)),
-          ),
-        ],
-      ),
+      title: 'DISCARD CHANGES?',
+      message: 'Unsaved edits will be lost.',
+      confirmLabel: 'DISCARD',
+      cancelLabel: 'KEEP',
+      destructive: true,
     );
-    return result ?? false;
   }
 
   Future<void> _save() async {
     final text = _controller.text.trim();
     if (text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('AFFIRMATION REQUIRED.')),
+      TerminalToast.show(
+        context,
+        'AFFIRMATION REQUIRED',
+        tone: ToastTone.alert,
       );
       return;
     }
@@ -127,8 +115,8 @@ class _AffirmationEditScreenState extends State<AffirmationEditScreen> {
         appBar: AppBar(
           backgroundColor: AppColors.backgroundDeep,
           leading: IconButton(
-            icon: const Icon(Icons.close,
-                size: 18, color: AppColors.textSecondary),
+            icon: const TerminalGlyph(Glyphs.close,
+                size: 16, color: AppColors.textSecondary),
             onPressed: () => Navigator.of(context).maybePop(),
           ),
           title: Text(
@@ -150,7 +138,7 @@ class _AffirmationEditScreenState extends State<AffirmationEditScreen> {
           ),
         ),
         body: _loading
-            ? const Center(child: Text('LOADING...'))
+            ? const Center(child: SignalLoader(label: 'LOADING ENTRY...'))
             : SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.screenH,

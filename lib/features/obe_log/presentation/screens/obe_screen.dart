@@ -12,6 +12,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/data_tag.dart';
 import '../../../../core/widgets/signal_loader.dart';
 import '../../../../core/widgets/signal_search_field.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
 import '../bloc/obe_log_bloc.dart';
 
 class ObeScreen extends StatefulWidget {
@@ -61,9 +62,8 @@ class _ObeScreenState extends State<ObeScreen> {
       appBar: _ObeAppBar(
         typeFilter: _typeFilter,
         stateFilter: _stateFilter,
-        expanded: _filtersExpanded ||
-            _typeFilter != 'ALL' ||
-            _stateFilter != 'ALL',
+        expanded: _filtersExpanded,
+        hasActiveFilter: _typeFilter != 'ALL' || _stateFilter != 'ALL',
         onTypeFilter: (v) => setState(() => _typeFilter = v),
         onStateFilter: (v) => setState(() => _stateFilter = v),
         onToggleExpanded: () =>
@@ -99,6 +99,7 @@ class _ObeAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.typeFilter,
     required this.stateFilter,
     required this.expanded,
+    required this.hasActiveFilter,
     required this.onTypeFilter,
     required this.onStateFilter,
     required this.onToggleExpanded,
@@ -107,13 +108,14 @@ class _ObeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String typeFilter;
   final String stateFilter;
   final bool expanded;
+  final bool hasActiveFilter;
   final ValueChanged<String> onTypeFilter;
   final ValueChanged<String> onStateFilter;
   final VoidCallback onToggleExpanded;
 
-  // 48 toolbar + (88 expanded | 38 collapsed) filter bar
+  // 48 toolbar + (expanded: header 32 + 2 rows 72 | collapsed 38) filter bar
   @override
-  Size get preferredSize => Size.fromHeight(expanded ? 136 : 86);
+  Size get preferredSize => Size.fromHeight(expanded ? 158 : 86);
 
   @override
   Widget build(BuildContext context) {
@@ -121,33 +123,39 @@ class _ObeAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text('OBE LOG', style: AppTypography.heading),
       actions: [
         IconButton(
-          icon: const Icon(Icons.help_outline, size: 18),
-          color: AppColors.textSecondary,
+          icon: const TerminalGlyph(Glyphs.help, size: 16),
           onPressed: () => context.pushNamed(AppRoutes.fieldGuide),
           tooltip: 'Field Guide',
         ),
         IconButton(
-          icon: const Icon(Icons.add, size: 20),
-          color: AppColors.amber,
+          icon: const TerminalGlyph(Glyphs.add, size: 18,
+              color: AppColors.amber, weight: FontWeight.w700),
           onPressed: () => context.pushNamed(AppRoutes.obeNew),
           tooltip: 'Log OBE',
         ),
       ],
       bottom: PreferredSize(
-        preferredSize: Size.fromHeight(expanded ? 72 : 38),
+        preferredSize: Size.fromHeight(expanded ? 94 : 38),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(height: 1, color: AppColors.borderSubtle),
-            if (expanded)
+            if (expanded) ...[
+              _ExpandedFilterHeader(
+                hasActiveFilter: hasActiveFilter,
+                onCollapse: onToggleExpanded,
+              ),
               _FilterBar(
                 typeFilter: typeFilter,
                 stateFilter: stateFilter,
                 onTypeFilter: onTypeFilter,
                 onStateFilter: onStateFilter,
-              )
-            else
-              _CollapsedFilterBar(onTap: onToggleExpanded),
+              ),
+            ] else
+              _CollapsedFilterBar(
+                hasActiveFilter: hasActiveFilter,
+                onTap: onToggleExpanded,
+              ),
             Container(height: 1, color: AppColors.borderSubtle),
           ],
         ),
@@ -204,8 +212,12 @@ class _FilterBar extends StatelessWidget {
 }
 
 class _CollapsedFilterBar extends StatelessWidget {
-  const _CollapsedFilterBar({required this.onTap});
+  const _CollapsedFilterBar({
+    required this.hasActiveFilter,
+    required this.onTap,
+  });
 
+  final bool hasActiveFilter;
   final VoidCallback onTap;
 
   @override
@@ -221,11 +233,58 @@ class _CollapsedFilterBar extends StatelessWidget {
           children: [
             Text('FILTERS', style: AppTypography.label),
             const SizedBox(width: 10),
-            Text('· ALL',
-                style: AppTypography.label
-                    .copyWith(color: AppColors.textSecondary)),
+            Text(
+              hasActiveFilter ? '· ACTIVE' : '· ALL',
+              style: AppTypography.label.copyWith(
+                color: hasActiveFilter
+                    ? AppColors.amber
+                    : AppColors.textSecondary,
+              ),
+            ),
             const Spacer(),
             Text('EXPAND ▾', style: AppTypography.labelAmber),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ExpandedFilterHeader extends StatelessWidget {
+  const _ExpandedFilterHeader({
+    required this.hasActiveFilter,
+    required this.onCollapse,
+  });
+
+  final bool hasActiveFilter;
+  final VoidCallback onCollapse;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onCollapse,
+      child: Container(
+        height: 32,
+        color: AppColors.backgroundDeep,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
+        decoration: const BoxDecoration(
+          color: AppColors.backgroundDeep,
+          border: Border(
+            bottom: BorderSide(color: AppColors.borderSubtle),
+          ),
+        ),
+        child: Row(
+          children: [
+            Text('FILTERS', style: AppTypography.label),
+            if (hasActiveFilter) ...[
+              const SizedBox(width: 10),
+              Text('· ACTIVE',
+                  style:
+                      AppTypography.label.copyWith(color: AppColors.amber)),
+            ],
+            const Spacer(),
+            Text('COLLAPSE ▴', style: AppTypography.labelAmber),
           ],
         ),
       ),

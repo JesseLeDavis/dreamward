@@ -155,6 +155,50 @@ abstract final class AppTheme {
           ),
         ),
 
+        // Dialog defaults — square, void-black scrim, raised panel.
+        // Bespoke chrome lives in TerminalDialog; this keeps stray
+        // showDialog calls from looking like Material 3.
+        dialogTheme: const DialogThemeData(
+          backgroundColor: AppColors.backgroundRaised,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.zero,
+            side: BorderSide(color: AppColors.borderStrong),
+          ),
+          titleTextStyle: TextStyle(
+            color: AppColors.amber,
+            fontSize: 11,
+            letterSpacing: 2.2,
+            fontWeight: FontWeight.w700,
+          ),
+          contentTextStyle: TextStyle(
+            color: AppColors.signalGreenDim,
+            fontSize: 12,
+            letterSpacing: 0.3,
+            height: 1.6,
+          ),
+          barrierColor: AppColors.voidBlack,
+        ),
+
+        // SnackBar defaults — bordered strip, no rounded pill.
+        // Real notifications go through TerminalToast.
+        snackBarTheme: const SnackBarThemeData(
+          backgroundColor: AppColors.backgroundDeep,
+          elevation: 0,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.zero,
+            side: BorderSide(color: AppColors.borderStrong),
+          ),
+          contentTextStyle: TextStyle(
+            color: AppColors.amber,
+            fontSize: 11,
+            letterSpacing: 1.8,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+
         // No ripple — retro feel
         splashFactory: NoSplash.splashFactory,
         highlightColor: AppColors.amberMuted.withAlpha(60),

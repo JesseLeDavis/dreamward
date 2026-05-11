@@ -11,6 +11,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/data_tag.dart';
 import '../../../../core/widgets/field_section.dart';
 import '../../../../core/widgets/signal_loader.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
 
 class DreamDetailScreen extends StatefulWidget {
   const DreamDetailScreen({super.key, required this.dreamId});
@@ -101,7 +102,7 @@ class _DreamDetailScreenState extends State<DreamDetailScreen> {
         actions: [
           if (!_loading && _data != null)
             IconButton(
-              icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.amber),
+              icon: const TerminalGlyph(Glyphs.edit, size: 16, color: AppColors.amber),
               onPressed: () async {
                 await context.pushNamed(
                   AppRoutes.dreamEdit,
@@ -299,7 +300,7 @@ class _DreamDetailScreenState extends State<DreamDetailScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.bolt, size: 14, color: AppColors.amber),
+                  const TerminalGlyph(Glyphs.bolt, size: 14, color: AppColors.amber, weight: FontWeight.w700),
                   const SizedBox(width: 8),
                   Text(
                     'LUCIDITY ACHIEVED',

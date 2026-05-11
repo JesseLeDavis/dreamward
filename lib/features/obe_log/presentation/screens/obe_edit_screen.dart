@@ -7,7 +7,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/signal_loader.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
 import '../../../../core/widgets/terminal_pickers.dart';
+import '../../../../core/widgets/terminal_toast.dart';
 import '../../data/repositories/obe_repository_impl.dart';
 import '../bloc/obe_entry_cubit.dart';
 import '../bloc/obe_log_bloc.dart';
@@ -148,8 +150,10 @@ class _ObeEditBodyState extends State<_ObeEditBody> {
   void _save() {
     final description = _experienceController.text.trim();
     if (description.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('EXPERIENCE NOTES ARE REQUIRED.')),
+      TerminalToast.show(
+        context,
+        'EXPERIENCE NOTES REQUIRED',
+        tone: ToastTone.alert,
       );
       return;
     }
@@ -181,8 +185,10 @@ class _ObeEditBodyState extends State<_ObeEditBody> {
         if (state is ObeEntrySaved) {
           Navigator.of(context).pop();
         } else if (state is ObeEntryError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('ERROR: ${state.message}')),
+          TerminalToast.show(
+            context,
+            'ERROR: ${state.message}',
+            tone: ToastTone.alert,
           );
         }
       },
@@ -320,7 +326,7 @@ class _ObeEditBodyState extends State<_ObeEditBody> {
     return AppBar(
       backgroundColor: AppColors.backgroundDeep,
       leading: IconButton(
-        icon: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
+        icon: const TerminalGlyph(Glyphs.close, size: 16, color: AppColors.textSecondary),
         onPressed: () => Navigator.of(context).pop(),
       ),
       title: Text('EDIT SESSION', style: AppTypography.heading),
@@ -440,8 +446,8 @@ class _DateSection extends StatelessWidget {
               children: [
                 Text(dateString, style: AppTypography.timestamp),
                 const Spacer(),
-                const Icon(
-                  Icons.calendar_today_outlined,
+                const TerminalGlyph(
+                  Glyphs.calendar,
                   size: 12,
                   color: AppColors.textMuted,
                 ),

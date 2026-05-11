@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/signal_loader.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
 import '../bloc/entity_cubit.dart';
 
 // Preset tag colors (hex strings stored in DB).
@@ -161,7 +162,7 @@ class _TagPickerSheetState extends State<_TagPickerSheet> {
                 decoration: InputDecoration(
                   hintText: 'SEARCH TAGS...',
                   hintStyle: AppTypography.hint,
-                  prefixIcon: const Icon(Icons.search,
+                  prefixIcon: const TerminalGlyph(Glyphs.search,
                       size: 14, color: AppColors.textMuted),
                   prefixIconConstraints:
                       const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -244,7 +245,7 @@ class _TagPickerSheetState extends State<_TagPickerSheet> {
                                 style: AppTypography.label),
                             const Spacer(),
                             if (selected)
-                              const Icon(Icons.check,
+                              const TerminalGlyph(Glyphs.check,
                                   size: 12, color: AppColors.amber),
                           ],
                         ),

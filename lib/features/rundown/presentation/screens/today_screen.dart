@@ -9,8 +9,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/data_tag.dart';
+import '../../../../core/widgets/empty_readout.dart';
 import '../../../../core/widgets/field_section.dart';
-import '../../../../core/widgets/scan_line_overlay.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
 
 // Fallback used only if the content library hasn't seeded yet.
 const _fallbackAffirmations = [
@@ -162,7 +163,7 @@ class _TodayScreenState extends State<TodayScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundBase,
       appBar: _TodayAppBar(date: widget.date),
-      body: ScanLineOverlay(child: ListView(
+      body: ListView(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.screenH,
           vertical: AppSpacing.screenV,
@@ -182,16 +183,14 @@ class _TodayScreenState extends State<TodayScreen> {
             onReset: _resetRitual,
           ),
           const SizedBox(height: AppSpacing.sectionGap),
-          _LastSessionSection(
-            currentDate: widget.date,
+          _DashboardPanel(
+            sessionsThisMonth: _sessionsThisMonth,
+            lastObeDate: _lastObeDate,
             lastDream: _lastDream,
             lastObe: _lastObe,
           ),
-          const SizedBox(height: AppSpacing.sectionGap),
-          _StatsStrip(
-            sessionsThisMonth: _sessionsThisMonth,
-            lastObeDate: _lastObeDate,
-          ),
+          const SizedBox(height: AppSpacing.sm),
+          _QuickLogRow(),
           const SizedBox(height: AppSpacing.sectionGap),
           _AffirmationSection(
             affirmation: _affirmations.isEmpty
@@ -202,7 +201,7 @@ class _TodayScreenState extends State<TodayScreen> {
           ),
           const SizedBox(height: AppSpacing.xxl),
         ],
-      )),
+      ),
     );
   }
 }
@@ -233,14 +232,12 @@ class _TodayAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: Center(child: Text(date, style: AppTypography.timestamp)),
         ),
         IconButton(
-          icon: const Icon(Icons.help_outline, size: 18),
-          color: AppColors.textSecondary,
+          icon: const TerminalGlyph(Glyphs.help, size: 16),
           onPressed: () => context.pushNamed(AppRoutes.fieldGuide),
           tooltip: 'Field Guide',
         ),
         IconButton(
-          icon: const Icon(Icons.settings_outlined, size: 18),
-          color: AppColors.textSecondary,
+          icon: const TerminalGlyph(Glyphs.settings, size: 16),
           onPressed: () => context.pushNamed(AppRoutes.settings),
         ),
       ],
@@ -422,45 +419,51 @@ class _IntentionSectionState extends State<_IntentionSection> {
 // Shows the most recent logged session regardless of date gap.
 // ---------------------------------------------------------------------------
 
-class _LastSessionSection extends StatelessWidget {
-  const _LastSessionSection({
-    required this.currentDate,
+// ---------------------------------------------------------------------------
+// Dashboard panel — multi-cell readout combining month stats, last OBE,
+// last transmission, and tonight's moon. Replaces _LastSessionSection +
+// _StatsStrip with a denser instrument-style layout.
+// ---------------------------------------------------------------------------
+
+const _dreamTypeLabels = [
+  'NORMAL',
+  'LUCID',
+  'RECURRING',
+  'NIGHTMARE',
+  'PROPHETIC',
+  'VISITATION',
+  'HYPNAGOGIC',
+];
+
+const _dreamTypeColors = [
+  AppColors.tagFragmented,
+  AppColors.tagLucid,
+  AppColors.tagRecurring,
+  AppColors.tagNightmare,
+  AppColors.tagFragmented,
+  AppColors.tagFragmented,
+  AppColors.tagFragmented,
+];
+
+const _outcomeLabels = ['ATTEMPTED', 'PARTIAL', 'CLEAN'];
+const _sessionTypeLabels = ['DELIBERATE', 'AMBIENT', 'BRIDGE'];
+
+String _formatDateShort(DateTime d) =>
+    '${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+class _DashboardPanel extends StatelessWidget {
+  const _DashboardPanel({
+    required this.sessionsThisMonth,
+    required this.lastObeDate,
     this.lastDream,
     this.lastObe,
   });
 
-  final String currentDate;
+  final int sessionsThisMonth;
+  final String lastObeDate;
   final Dream? lastDream;
   final ObeLog? lastObe;
 
-  static const _dreamTypeLabels = [
-    'NORMAL',
-    'LUCID',
-    'RECURRING',
-    'NIGHTMARE',
-    'PROPHETIC',
-    'VISITATION',
-    'HYPNAGOGIC',
-  ];
-
-  static const _dreamTypeColors = [
-    AppColors.tagFragmented,
-    AppColors.tagLucid,
-    AppColors.tagRecurring,
-    AppColors.tagNightmare,
-    AppColors.tagFragmented,
-    AppColors.tagFragmented,
-    AppColors.tagFragmented,
-  ];
-
-  static const _outcomeLabels = ['ATTEMPTED', 'PARTIAL', 'CLEAN'];
-
-  static const _sessionTypeLabels = ['DELIBERATE', 'AMBIENT', 'BRIDGE'];
-
-  static String _formatDate(DateTime d) =>
-      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-
-  /// Returns true if the most recent entry is a dream (vs OBE).
   bool get _dreamIsMoreRecent {
     if (lastDream == null) return false;
     if (lastObe == null) return true;
@@ -472,101 +475,113 @@ class _LastSessionSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FieldSection(
-      label: 'LAST TRANSMISSION',
-      contentPadding: const EdgeInsets.all(AppSpacing.cardPad),
+      label: 'DASHBOARD',
+      contentPadding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 3-cell metrics row
+          IntrinsicHeight(
+            child: Row(
+              children: [
+                Expanded(
+                  child: _MetricCell(
+                    label: 'SESSIONS / MO',
+                    value: sessionsThisMonth > 0
+                        ? sessionsThisMonth.toString().padLeft(2, '0')
+                        : '--',
+                  ),
+                ),
+                const _CellDivider(),
+                Expanded(
+                  child: _MetricCell(
+                    label: 'LAST OBE',
+                    value: lastObeDate,
+                  ),
+                ),
+                const _CellDivider(),
+                Expanded(child: _MoonCell()),
+              ],
+            ),
+          ),
+          const Divider(
+            height: 1,
+            thickness: 1,
+            color: AppColors.borderSubtle,
+          ),
+          // Wide last-transmission cell
+          if (!_hasData)
+            const Padding(
+              padding: EdgeInsets.all(AppSpacing.cardPad),
+              child: EmptyReadout(
+                label: 'NO TRANSMISSIONS — CARRIER IDLE',
+                sublabel: 'Your most recent session will appear here.',
+                height: 96,
+              ),
+            )
+          else if (_dreamIsMoreRecent)
+            _LastDreamRow(dream: lastDream!)
+          else
+            _LastObeRow(obe: lastObe!),
+        ],
+      ),
+    );
+  }
+}
+
+class _MetricCell extends StatelessWidget {
+  const _MetricCell({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 10,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!_hasData) ...[
-            Text('NO TRANSMISSIONS YET.', style: AppTypography.label),
-            const SizedBox(height: 4),
-            Text(
-              'Your most recent session will appear here.',
-              style: AppTypography.signalText,
-            ),
-          ] else if (_dreamIsMoreRecent) ...[
-            // Dream display
-            Row(
-              children: [
-                Text('DREAM', style: AppTypography.labelAmber),
-                const SizedBox(width: 8),
-                Text(
-                  _formatDate(lastDream!.createdAt),
-                  style: AppTypography.timestamp,
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              lastDream!.title,
-              style: AppTypography.body,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 6),
-            DataTag(
-              label: _dreamTypeLabels[lastDream!.dreamType.clamp(0, 6)],
-              color: _dreamTypeColors[lastDream!.dreamType.clamp(0, 6)],
-            ),
-          ] else ...[
-            // OBE display
-            Row(
-              children: [
-                Text('OBE SESSION', style: AppTypography.labelAmber),
-                const SizedBox(width: 8),
-                Text(
-                  _formatDate(lastObe!.sessionDate),
-                  style: AppTypography.timestamp,
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                DataTag(
-                  label: _sessionTypeLabels[lastObe!.sessionType.clamp(0, 2)],
-                  color: AppColors.amber,
-                ),
-                const SizedBox(width: 6),
-                DataTag(
-                  label: _outcomeLabels[lastObe!.entryState.clamp(0, 2)],
-                  color: lastObe!.entryState == 2
-                      ? AppColors.green
-                      : lastObe!.entryState == 0
-                          ? AppColors.statusAlert
-                          : AppColors.amber,
-                ),
-              ],
-            ),
-          ],
-          const SizedBox(height: AppSpacing.sm),
-          const Divider(height: 1, color: AppColors.borderSubtle),
-          const SizedBox(height: 8),
-          // Log buttons
+          Text(label, style: AppTypography.microMono),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: AppTypography.displayAmber.copyWith(fontSize: 18),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MoonCell extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final phase = _moonPhase(DateTime.now());
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('MOON', style: AppTypography.microMono),
+          const SizedBox(height: 4),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => context.pushNamed(AppRoutes.obeNew),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.borderSubtle),
-                    foregroundColor: AppColors.textSecondary,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                  ),
-                  child: const Text('+ LOG OBE'),
+              Text(
+                _moonGlyph(phase),
+                style: const TextStyle(
+                  color: AppColors.amber,
+                  fontSize: 18,
+                  height: 1.0,
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => context.pushNamed(AppRoutes.dreamNew),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.borderSubtle),
-                    foregroundColor: AppColors.textSecondary,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                  ),
-                  child: const Text('+ LOG DREAM'),
-                ),
+              const SizedBox(width: 6),
+              Text(
+                _moonLabel(phase),
+                style: AppTypography.labelAmber,
               ),
             ],
           ),
@@ -574,6 +589,177 @@ class _LastSessionSection extends StatelessWidget {
       ),
     );
   }
+}
+
+class _CellDivider extends StatelessWidget {
+  const _CellDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      color: AppColors.borderSubtle,
+    );
+  }
+}
+
+class _LastDreamRow extends StatelessWidget {
+  const _LastDreamRow({required this.dream});
+  final Dream dream;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.cardPad,
+        vertical: 10,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('LAST TXMIT', style: AppTypography.microMono),
+              const SizedBox(width: 8),
+              Text('▸ DREAM',
+                  style: AppTypography.label
+                      .copyWith(color: AppColors.amber)),
+              const Spacer(),
+              Text(
+                _formatDateShort(dream.createdAt),
+                style: AppTypography.timestamp,
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            dream.title,
+            style: AppTypography.body,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 6),
+          DataTag(
+            label: _dreamTypeLabels[dream.dreamType.clamp(0, 6)],
+            color: _dreamTypeColors[dream.dreamType.clamp(0, 6)],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LastObeRow extends StatelessWidget {
+  const _LastObeRow({required this.obe});
+  final ObeLog obe;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.cardPad,
+        vertical: 10,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('LAST TXMIT', style: AppTypography.microMono),
+              const SizedBox(width: 8),
+              Text('▸ OBE',
+                  style: AppTypography.label
+                      .copyWith(color: AppColors.amber)),
+              const Spacer(),
+              Text(
+                _formatDateShort(obe.sessionDate),
+                style: AppTypography.timestamp,
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              DataTag(
+                label: _sessionTypeLabels[obe.sessionType.clamp(0, 2)],
+                color: AppColors.amber,
+              ),
+              const SizedBox(width: 6),
+              DataTag(
+                label: _outcomeLabels[obe.entryState.clamp(0, 2)],
+                color: obe.entryState == 2
+                    ? AppColors.signalGreenDim
+                    : obe.entryState == 0
+                        ? AppColors.statusAlert
+                        : AppColors.amber,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickLogRow extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () => context.pushNamed(AppRoutes.obeNew),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: AppColors.borderNormal),
+              foregroundColor: AppColors.amber,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+            child: const Text('+ LOG OBE'),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () => context.pushNamed(AppRoutes.dreamNew),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: AppColors.borderNormal),
+              foregroundColor: AppColors.amber,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+            child: const Text('+ LOG DREAM'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Moon-phase math — duplicated from status_strip.dart so the dashboard
+// stays self-contained. If we add a third caller, lift to a util file.
+double _moonPhase(DateTime date) {
+  final ref = DateTime.utc(2000, 1, 6, 18, 14);
+  const synodic = 29.530588853;
+  final daysSince = date.toUtc().difference(ref).inMinutes / (60 * 24);
+  var phase = (daysSince / synodic) % 1.0;
+  if (phase < 0) phase += 1;
+  return phase;
+}
+
+String _moonGlyph(double phase) {
+  const eighth = 1 / 8;
+  if (phase < eighth || phase >= 7 * eighth) return '●';
+  if (phase < 3 * eighth) return '◐';
+  if (phase < 5 * eighth) return '○';
+  return '◑';
+}
+
+String _moonLabel(double phase) {
+  const eighth = 1 / 8;
+  if (phase < eighth) return 'NEW';
+  if (phase < 3 * eighth) return 'WAX';
+  if (phase < 5 * eighth) return 'FULL';
+  if (phase < 7 * eighth) return 'WANE';
+  return 'NEW';
 }
 
 // ---------------------------------------------------------------------------
@@ -749,7 +935,7 @@ class _RitualItem extends StatelessWidget {
                 ),
                 Text(
                   sublabel,
-                  style: AppTypography.bodyMuted.copyWith(fontSize: 10),
+                  style: AppTypography.microLabel,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -766,70 +952,5 @@ class _RitualItem extends StatelessWidget {
 // Stats strip
 // ---------------------------------------------------------------------------
 
-class _StatsStrip extends StatelessWidget {
-  const _StatsStrip({
-    required this.sessionsThisMonth,
-    required this.lastObeDate,
-  });
-
-  final int sessionsThisMonth;
-  final String lastObeDate;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.cardPad,
-        vertical: 10,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundSurface,
-        border: Border.all(color: AppColors.borderSubtle),
-      ),
-      child: Row(
-        children: [
-          _StatCol(
-            label: 'SESSIONS\nTHIS MONTH',
-            value: sessionsThisMonth > 0 ? '$sessionsThisMonth' : '--',
-          ),
-          const SizedBox(
-            width: 1,
-            height: 32,
-            child: ColoredBox(color: AppColors.borderNormal),
-          ),
-          _StatCol(label: 'LAST OBE', value: lastObeDate),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatCol extends StatelessWidget {
-  const _StatCol({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            label,
-            style: AppTypography.label,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: AppTypography.labelAmber,
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 

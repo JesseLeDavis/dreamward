@@ -5,6 +5,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/signal_loader.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
+import '../../../../core/widgets/terminal_toast.dart';
 import '../bloc/entity_cubit.dart';
 
 class CharacterNewScreen extends StatelessWidget {
@@ -41,9 +43,7 @@ class _CharacterNewBodyState extends State<_CharacterNewBody> {
   Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('NAME IS REQUIRED.')),
-      );
+      TerminalToast.show(context, 'NAME IS REQUIRED', tone: ToastTone.alert);
       return;
     }
     setState(() => _saving = true);
@@ -62,9 +62,7 @@ class _CharacterNewBodyState extends State<_CharacterNewBody> {
     } catch (e) {
       if (mounted) {
         setState(() => _saving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('ERROR: $e')),
-        );
+        TerminalToast.show(context, 'ERROR: $e', tone: ToastTone.alert);
       }
     }
   }
@@ -148,7 +146,7 @@ class _CharacterNewBodyState extends State<_CharacterNewBody> {
     return AppBar(
       backgroundColor: AppColors.backgroundDeep,
       leading: IconButton(
-        icon: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
+        icon: const TerminalGlyph(Glyphs.close, size: 16, color: AppColors.textSecondary),
         onPressed: () => Navigator.of(context).pop(),
       ),
       title: Text('LOG CHARACTER', style: AppTypography.heading),

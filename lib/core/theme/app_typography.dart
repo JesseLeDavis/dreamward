@@ -4,6 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 abstract final class AppTypography {
+  /// Numerals stay column-aligned even when values change. Critical for
+  /// readouts that update in place (status strip clock, stat counts).
+  static const _tabularFigures = [FontFeature.tabularFigures()];
+
   static TextStyle _mono({
     double fontSize = 13,
     FontWeight weight = FontWeight.w400,
@@ -17,6 +21,7 @@ abstract final class AppTypography {
         color: color ?? AppColors.textPrimary,
         letterSpacing: letterSpacing,
         height: height,
+        fontFeatures: _tabularFigures,
       );
 
   /// Large amber data readout — stat boxes, timestamps
@@ -75,6 +80,22 @@ abstract final class AppTypography {
   static TextStyle get tag => _mono(
         fontSize: 11,
         letterSpacing: 0.8,
+      );
+
+  /// 10px mono — sub-labels under stat readouts, chip values, dense rows.
+  /// Use instead of inline `copyWith(fontSize: 10)`.
+  static TextStyle get microLabel => _mono(
+        fontSize: 10,
+        letterSpacing: 1.6,
+        color: AppColors.textSecondary,
+      );
+
+  /// 9px mono — status strip readouts, instrument chrome.
+  /// One step below microLabel; reserve for the device housing.
+  static TextStyle get microMono => _mono(
+        fontSize: 9,
+        letterSpacing: 1.4,
+        color: AppColors.textSecondary,
       );
 
   /// Hint / placeholder text in fields

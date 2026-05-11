@@ -7,6 +7,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
 import '../bloc/entity_cubit.dart';
 
 /// Bottom sheet for selecting characters to link to a dream.
@@ -117,7 +118,7 @@ class _CharacterPickerSheetState extends State<_CharacterPickerSheet> {
                 decoration: InputDecoration(
                   hintText: 'SEARCH CHARACTERS...',
                   hintStyle: AppTypography.hint,
-                  prefixIcon: const Icon(Icons.search,
+                  prefixIcon: const TerminalGlyph(Glyphs.search,
                       size: 14, color: AppColors.textMuted),
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.cardPad, vertical: 8),
@@ -192,7 +193,7 @@ class _CharacterPickerSheetState extends State<_CharacterPickerSheet> {
                             ],
                             const Spacer(),
                             if (selected)
-                              const Icon(Icons.check,
+                              const TerminalGlyph(Glyphs.check,
                                   size: 12, color: AppColors.amber),
                           ],
                         ),

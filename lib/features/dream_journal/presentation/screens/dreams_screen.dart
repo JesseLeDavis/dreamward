@@ -12,6 +12,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/data_tag.dart';
 import '../../../../core/widgets/signal_loader.dart';
 import '../../../../core/widgets/signal_search_field.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
 import '../bloc/dream_journal_bloc.dart';
 import '../bloc/entity_cubit.dart';
 import '../widgets/character_picker_sheet.dart';
@@ -98,8 +99,8 @@ class _DreamsAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text('DREAM LOG', style: AppTypography.heading),
       actions: [
         IconButton(
-          icon: const Icon(Icons.add, size: 20),
-          color: AppColors.amber,
+          icon: const TerminalGlyph(Glyphs.add, size: 18,
+              color: AppColors.amber, weight: FontWeight.w700),
           onPressed: () => context.pushNamed(AppRoutes.dreamNew),
           tooltip: 'Log Dream',
         ),
@@ -152,7 +153,7 @@ class _FilterBar extends StatelessWidget {
                     // Tag filter button
                     _FilterButton(
                       label: 'TAG',
-                      icon: Icons.label_outline,
+                      glyph: Glyphs.tag,
                       onTap: () async {
                         final bloc =
                             context.read<DreamJournalBloc>();
@@ -168,7 +169,7 @@ class _FilterBar extends StatelessWidget {
                     // Character filter button
                     _FilterButton(
                       label: 'CHARACTER',
-                      icon: Icons.person_outline,
+                      glyph: Glyphs.character,
                       onTap: () async {
                         final bloc =
                             context.read<DreamJournalBloc>();
@@ -230,12 +231,12 @@ class _FilterBar extends StatelessWidget {
 class _FilterButton extends StatelessWidget {
   const _FilterButton({
     required this.label,
-    required this.icon,
+    required this.glyph,
     required this.onTap,
   });
 
   final String label;
-  final IconData icon;
+  final String glyph;
   final VoidCallback onTap;
 
   @override
@@ -250,7 +251,7 @@ class _FilterButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 12, color: AppColors.textMuted),
+            TerminalGlyph(glyph, size: 12, color: AppColors.textMuted),
             const SizedBox(width: 5),
             Text(label,
                 style: AppTypography.tag.copyWith(color: AppColors.textMuted)),
@@ -277,7 +278,6 @@ class _ActiveFilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.amberMuted,
         border: Border.all(color: color),
@@ -285,16 +285,22 @@ class _ActiveFilterChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            '$prefix $label',
-            style: AppTypography.tag.copyWith(color: color),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 8, 6, 8),
+            child: Text(
+              '$prefix $label',
+              style: AppTypography.tag.copyWith(color: color),
+            ),
           ),
-          const SizedBox(width: 6),
           GestureDetector(
             onTap: onClear,
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: Icon(Icons.close, size: 12, color: color),
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: 36,
+              height: 36,
+              child: Center(
+                child: TerminalGlyph(Glyphs.close, size: 14, color: color),
+              ),
             ),
           ),
         ],
@@ -445,8 +451,8 @@ class _DreamCard extends StatelessWidget {
                       padding: const EdgeInsets.only(right: 6),
                       child: Text('CHAIN', style: AppTypography.labelAmber),
                     ),
-                  const Icon(
-                    Icons.chevron_right,
+                  const TerminalGlyph(
+                    Glyphs.chevronRight,
                     size: 14,
                     color: AppColors.textMuted,
                   ),

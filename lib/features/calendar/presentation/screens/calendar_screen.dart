@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/signal_loader.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
 import '../bloc/calendar_bloc.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -59,7 +60,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       body: Column(
         children: [
-          _WeekdayHeader(),
+          const _WeekdayHeader(),
           Expanded(
             child: BlocBuilder<CalendarBloc, CalendarState>(
               builder: (context, state) {
@@ -82,8 +83,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               },
             ),
           ),
-          _Legend(),
-          const SizedBox(height: AppSpacing.screenV),
+          const _Legend(),
         ],
       ),
     );
@@ -92,6 +92,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
   String _dateStr(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 }
+
+// ---------------------------------------------------------------------------
+// Layout constants — week-number gutter is the only non-trivial geometry.
+// ---------------------------------------------------------------------------
+
+const double _gutterWidth = 28;
 
 // ---------------------------------------------------------------------------
 // App bar with month navigation
@@ -122,8 +128,7 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text('CALENDAR', style: AppTypography.heading),
       actions: [
         IconButton(
-          icon: const Icon(Icons.chevron_left, size: 18),
-          color: AppColors.textSecondary,
+          icon: const TerminalGlyph(Glyphs.chevronLeft, size: 18),
           onPressed: onPrev,
         ),
         Padding(
@@ -136,8 +141,7 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.chevron_right, size: 18),
-          color: AppColors.textSecondary,
+          icon: const TerminalGlyph(Glyphs.chevronRight, size: 18),
           onPressed: onNext,
         ),
       ],
@@ -150,36 +154,47 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Weekday header
+// Weekday header — left gutter slot ("W") + 7 weekday columns.
 // ---------------------------------------------------------------------------
 
 class _WeekdayHeader extends StatelessWidget {
+  const _WeekdayHeader();
+
   @override
   Widget build(BuildContext context) {
     const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
     return Container(
-      color: AppColors.backgroundDeep,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.screenH,
-        vertical: 8,
+      decoration: const BoxDecoration(
+        color: AppColors.backgroundDeep,
+        border: Border(
+          bottom: BorderSide(color: AppColors.borderSubtle),
+        ),
       ),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
-        children: days
-            .map(
-              (d) => Expanded(
-                child: Center(
-                  child: Text(d, style: AppTypography.label),
-                ),
+        children: [
+          SizedBox(
+            width: _gutterWidth,
+            child: Center(
+              child: Text('W',
+                  style: AppTypography.microMono
+                      .copyWith(color: AppColors.amberDim)),
+            ),
+          ),
+          for (final d in days)
+            Expanded(
+              child: Center(
+                child: Text(d, style: AppTypography.label),
               ),
-            )
-            .toList(),
+            ),
+        ],
       ),
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Month grid
+// Month grid — week-number gutter + 7 day cells per row.
 // ---------------------------------------------------------------------------
 
 class _MonthGrid extends StatelessWidget {
@@ -197,45 +212,34 @@ class _MonthGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final weeks = _buildWeeks(focusedMonth);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
-      child: Column(
-        children: weeks.map((week) {
-          return Expanded(
-            child: Row(
-              children: week.map((day) {
-                return Expanded(
-                  child: day == null
-                      ? _EmptyCell()
-                      : _DayCell(
-                          date: day,
-                          isCurrentMonth: day.month == focusedMonth.month,
-                          isToday: _isToday(day),
-                          summary: summaries[_dateStr(day)],
-                          onTap: () => onDayTap(day),
-                        ),
-                );
-              }).toList(),
+    return Column(
+      children: [
+        // Top hairline of the grid.
+        Container(height: 1, color: AppColors.borderSubtle),
+        for (final week in weeks)
+          Expanded(
+            child: _WeekRow(
+              week: week,
+              focusedMonth: focusedMonth,
+              summaries: summaries,
+              onDayTap: onDayTap,
             ),
-          );
-        }).toList(),
-      ),
+          ),
+      ],
     );
   }
 
   List<List<DateTime?>> _buildWeeks(DateTime month) {
     final firstDay = DateTime(month.year, month.month, 1);
-    // Monday-first: weekday 1=Mon..7=Sun
     final startOffset = (firstDay.weekday - 1) % 7;
-    final daysInMonth =
-        DateTime(month.year, month.month + 1, 0).day;
+    final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
 
     final cells = <DateTime?>[
       for (int i = 0; i < startOffset; i++) null,
-      for (int d = 1; d <= daysInMonth; d++) DateTime(month.year, month.month, d),
+      for (int d = 1; d <= daysInMonth; d++)
+        DateTime(month.year, month.month, d),
     ];
 
-    // Pad to full weeks
     while (cells.length % 7 != 0) {
       cells.add(null);
     }
@@ -245,6 +249,82 @@ class _MonthGrid extends StatelessWidget {
       weeks.add(cells.sublist(i, i + 7));
     }
     return weeks;
+  }
+}
+
+class _WeekRow extends StatelessWidget {
+  const _WeekRow({
+    required this.week,
+    required this.focusedMonth,
+    required this.summaries,
+    required this.onDayTap,
+  });
+
+  final List<DateTime?> week;
+  final DateTime focusedMonth;
+  final Map<String, CalendarDaySummary> summaries;
+  final ValueChanged<DateTime> onDayTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final referenceDay =
+        week.firstWhere((d) => d != null, orElse: () => null);
+    final weekNum = referenceDay == null
+        ? null
+        : _isoWeekNumber(referenceDay);
+
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: AppColors.borderSubtle),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Left gutter — week number
+          Container(
+            width: _gutterWidth,
+            decoration: const BoxDecoration(
+              color: AppColors.backgroundDeep,
+              border: Border(
+                right: BorderSide(color: AppColors.borderSubtle),
+              ),
+            ),
+            child: Center(
+              child: weekNum == null
+                  ? const SizedBox.shrink()
+                  : Text(
+                      weekNum.toString().padLeft(2, '0'),
+                      style: AppTypography.microMono
+                          .copyWith(color: AppColors.textMuted),
+                    ),
+            ),
+          ),
+          for (var i = 0; i < week.length; i++)
+            Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(
+                    right: i < week.length - 1
+                        ? const BorderSide(color: AppColors.borderSubtle)
+                        : BorderSide.none,
+                  ),
+                ),
+                child: week[i] == null
+                    ? const _EmptyCell()
+                    : _DayCell(
+                        date: week[i]!,
+                        isCurrentMonth:
+                            week[i]!.month == focusedMonth.month,
+                        isToday: _isToday(week[i]!),
+                        summary: summaries[_dateStr(week[i]!)],
+                        onTap: () => onDayTap(week[i]!),
+                      ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   bool _isToday(DateTime d) {
@@ -257,7 +337,8 @@ class _MonthGrid extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Day cell
+// Day cell — tabular day number top-left, three-dot indicator strip bottom,
+// amber ring + [NOW] tag on today.
 // ---------------------------------------------------------------------------
 
 class _DayCell extends StatelessWidget {
@@ -277,88 +358,139 @@ class _DayCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = isCurrentMonth
+    final dayColor = isCurrentMonth
         ? (isToday ? AppColors.amber : AppColors.textPrimary)
         : AppColors.textMuted;
 
     final hasDream = (summary?.dreamCount ?? 0) > 0;
     final hasObe = (summary?.obeCount ?? 0) > 0;
     final hasRundown = summary?.hasRundown ?? false;
-    final hasAny = hasDream || hasObe || hasRundown;
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: isCurrentMonth ? onTap : null,
-      child: Container(
-        margin: const EdgeInsets.all(1),
-        decoration: BoxDecoration(
-          color: isToday
-              ? AppColors.amberMuted
-              : AppColors.backgroundSurface,
-          border: Border.all(
-            color: isToday ? AppColors.amber : AppColors.borderSubtle,
-            width: isToday ? 1.5 : 1,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '${date.day}',
-              style: AppTypography.body.copyWith(color: textColor),
+      child: Stack(
+        children: [
+          // Today frame — amber border drawn over the cell.
+          if (isToday)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: AppColors.amber,
+                      width: 1.5,
+                    ),
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 3),
-            // Activity dots
-            if (hasAny)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (hasDream) _Dot(AppColors.tagVivid),
-                  if (hasObe) _Dot(AppColors.statusSleep),
-                  if (hasRundown) _Dot(AppColors.amber),
-                ],
-              )
-            else
-              const SizedBox(height: 6),
-          ],
-        ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      date.day.toString().padLeft(2, '0'),
+                      style: AppTypography.body.copyWith(
+                        color: dayColor,
+                        fontSize: 12,
+                      ),
+                    ),
+                    if (isToday) ...[
+                      const Spacer(),
+                      Text(
+                        '[NOW]',
+                        style: AppTypography.microMono
+                            .copyWith(color: AppColors.amber),
+                      ),
+                    ],
+                  ],
+                ),
+                const Spacer(),
+                _IndicatorStrip(
+                  hasDream: hasDream,
+                  hasObe: hasObe,
+                  hasRundown: hasRundown,
+                  dimmed: !isCurrentMonth,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _Dot extends StatelessWidget {
-  const _Dot(this.color);
+class _IndicatorStrip extends StatelessWidget {
+  const _IndicatorStrip({
+    required this.hasDream,
+    required this.hasObe,
+    required this.hasRundown,
+    required this.dimmed,
+  });
+
+  final bool hasDream;
+  final bool hasObe;
+  final bool hasRundown;
+  final bool dimmed;
+
+  Color _slot(bool present, Color liveColor) {
+    if (!present) return AppColors.borderSubtle;
+    if (dimmed) return liveColor.withAlpha(80);
+    return liveColor;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        _Slot(color: _slot(hasDream, AppColors.signalGreenDim)),
+        const SizedBox(width: 3),
+        _Slot(color: _slot(hasObe, AppColors.statusSleep)),
+        const SizedBox(width: 3),
+        _Slot(color: _slot(hasRundown, AppColors.amber)),
+      ],
+    );
+  }
+}
+
+class _Slot extends StatelessWidget {
+  const _Slot({required this.color});
   final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 4,
-      height: 4,
-      margin: const EdgeInsets.symmetric(horizontal: 1),
-      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+      width: 6,
+      height: 2,
+      color: color,
     );
   }
 }
 
 class _EmptyCell extends StatelessWidget {
+  const _EmptyCell();
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(1),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundBase,
-        border: Border.all(color: AppColors.borderSubtle.withAlpha(60)),
-      ),
+      color: AppColors.backgroundBase.withAlpha(120),
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Legend
+// Legend — sticky bottom strip styled like a paper-map key.
 // ---------------------------------------------------------------------------
 
 class _Legend extends StatelessWidget {
+  const _Legend();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -367,15 +499,18 @@ class _Legend extends StatelessWidget {
         vertical: 10,
       ),
       decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.borderSubtle)),
+        color: AppColors.backgroundDeep,
+        border: Border(
+          top: BorderSide(color: AppColors.borderSubtle),
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: const [
-          _LegendItem(color: AppColors.tagVivid, label: 'DREAM'),
-          SizedBox(width: 16),
+          _LegendItem(color: AppColors.signalGreenDim, label: 'DREAM'),
+          SizedBox(width: 18),
           _LegendItem(color: AppColors.statusSleep, label: 'OBE'),
-          SizedBox(width: 16),
+          SizedBox(width: 18),
           _LegendItem(color: AppColors.amber, label: 'RUNDOWN'),
         ],
       ),
@@ -393,14 +528,23 @@ class _LegendItem extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-        ),
-        const SizedBox(width: 4),
-        Text(label, style: AppTypography.label),
+        Container(width: 8, height: 2, color: color),
+        const SizedBox(width: 6),
+        Text(label, style: AppTypography.microMono),
       ],
     );
   }
+}
+
+// ---------------------------------------------------------------------------
+// ISO 8601 week number — week 1 contains the year's first Thursday.
+// ---------------------------------------------------------------------------
+
+int _isoWeekNumber(DateTime date) {
+  // Move to the Thursday in this ISO week.
+  final dayOffset = 4 - date.weekday;
+  final thursday = DateTime(date.year, date.month, date.day + dayOffset);
+  final firstJan = DateTime(thursday.year, 1, 1);
+  final daysSinceFirstJan = thursday.difference(firstJan).inDays;
+  return ((daysSinceFirstJan + firstJan.weekday + 6) / 7).floor();
 }

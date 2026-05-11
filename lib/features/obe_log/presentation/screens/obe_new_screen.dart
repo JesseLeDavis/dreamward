@@ -7,7 +7,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/signal_loader.dart';
+import '../../../../core/widgets/terminal_dialog.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
 import '../../../../core/widgets/terminal_pickers.dart';
+import '../../../../core/widgets/terminal_toast.dart';
 import '../../data/repositories/obe_repository_impl.dart';
 import '../bloc/obe_entry_cubit.dart';
 import '../bloc/obe_log_bloc.dart';
@@ -115,8 +118,10 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
   void _save() {
     final description = _experienceController.text.trim();
     if (description.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('EXPERIENCE NOTES ARE REQUIRED.')),
+      TerminalToast.show(
+        context,
+        'EXPERIENCE NOTES REQUIRED',
+        tone: ToastTone.alert,
       );
       return;
     }
@@ -147,31 +152,14 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
 
   Future<bool> _confirmDiscard() async {
     if (!_hasDraft) return true;
-    final result = await showDialog<bool>(
+    return TerminalDialog.confirm(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.backgroundSurface,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        title: Text('DISCARD DRAFT?', style: AppTypography.heading),
-        content: Text(
-          'Session not saved. Closing now will lose this entry.',
-          style: AppTypography.signalText,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text('KEEP',
-                style: AppTypography.label.copyWith(color: AppColors.amber)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text('DISCARD',
-                style: AppTypography.label.copyWith(color: AppColors.statusAlert)),
-          ),
-        ],
-      ),
+      title: 'DISCARD DRAFT?',
+      message: 'Session not saved. Closing now will lose this entry.',
+      confirmLabel: 'DISCARD',
+      cancelLabel: 'KEEP',
+      destructive: true,
     );
-    return result ?? false;
   }
 
   @override
@@ -181,8 +169,10 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
         if (state is ObeEntrySaved) {
           Navigator.of(context).pop();
         } else if (state is ObeEntryError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('ERROR: ${state.message}')),
+          TerminalToast.show(
+            context,
+            'ERROR: ${state.message}',
+            tone: ToastTone.alert,
           );
         }
       },
@@ -316,7 +306,7 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
     return AppBar(
       backgroundColor: AppColors.backgroundDeep,
       leading: IconButton(
-        icon: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
+        icon: const TerminalGlyph(Glyphs.close, size: 16, color: AppColors.textSecondary),
         onPressed: () => Navigator.of(context).maybePop(),
       ),
       title: Text('LOG SESSION', style: AppTypography.heading),
@@ -438,8 +428,8 @@ class _DateSection extends StatelessWidget {
               children: [
                 Text(dateString, style: AppTypography.timestamp),
                 const Spacer(),
-                const Icon(
-                  Icons.calendar_today_outlined,
+                const TerminalGlyph(
+                  Glyphs.calendar,
                   size: 12,
                   color: AppColors.textMuted,
                 ),

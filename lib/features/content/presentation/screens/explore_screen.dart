@@ -10,6 +10,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
 import '../bloc/content_bloc.dart';
 
 class ExploreScreen extends StatelessWidget {
@@ -166,15 +167,15 @@ class _FavoritesRow extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.star_outline,
-                    size: 16, color: AppColors.amber),
+                const TerminalGlyph(Glyphs.starFilled,
+                    size: 14, color: AppColors.amber),
                 const SizedBox(width: 8),
                 Text('FAVORITES', style: AppTypography.labelAmber),
                 const Spacer(),
                 Text(label, style: AppTypography.timestamp),
                 const SizedBox(width: 4),
-                const Icon(
-                  Icons.chevron_right,
+                const TerminalGlyph(
+                  Glyphs.chevronRight,
                   size: 14,
                   color: AppColors.amber,
                 ),
@@ -217,7 +218,7 @@ class _CategoryTile extends StatelessWidget {
             // Icon + count
             Row(
               children: [
-                Icon(category.icon,
+                TerminalGlyph(category.glyph,
                     size: 16, color: AppColors.textSecondary),
                 const Spacer(),
                 Text(
@@ -273,14 +274,14 @@ class _StaticCategory {
     required this.slug,
     required this.label,
     required this.sublabel,
-    required this.icon,
+    required this.glyph,
     required this.contentType,
   });
 
   final String slug;
   final String label;
   final String sublabel;
-  final IconData icon;
+  final String glyph;
   final int contentType;
 }
 
@@ -289,35 +290,35 @@ const _staticCategories = [
     slug: 'techniques',
     label: 'OBE Techniques',
     sublabel: 'Induction methods',
-    icon: Icons.psychology_outlined,
+    glyph: Glyphs.techniques,
     contentType: 0,
   ),
   _StaticCategory(
     slug: 'affirmations',
     label: 'Affirmations',
     sublabel: 'Daily statements',
-    icon: Icons.format_quote_outlined,
+    glyph: Glyphs.quote,
     contentType: 1,
   ),
   _StaticCategory(
     slug: 'meditations',
     label: 'Meditations',
     sublabel: 'Guided sessions',
-    icon: Icons.self_improvement_outlined,
+    glyph: Glyphs.meditate,
     contentType: 2,
   ),
   _StaticCategory(
     slug: 'visualizations',
     label: 'Visualizations',
     sublabel: 'Scene building',
-    icon: Icons.visibility_outlined,
+    glyph: Glyphs.visualize,
     contentType: 3,
   ),
   _StaticCategory(
     slug: 'breathwork',
     label: 'Breathwork',
     sublabel: 'Breathing exercises',
-    icon: Icons.air_outlined,
+    glyph: Glyphs.breath,
     contentType: 4,
   ),
 ];

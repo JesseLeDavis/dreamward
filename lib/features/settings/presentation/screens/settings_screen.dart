@@ -10,7 +10,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/field_section.dart';
+import '../../../../core/widgets/terminal_dialog.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
 import '../../../../core/widgets/terminal_pickers.dart';
+import '../../../../core/widgets/terminal_toast.dart';
 import '../../../dream_journal/presentation/bloc/dream_journal_bloc.dart';
 import '../../../obe_log/presentation/bloc/obe_log_bloc.dart';
 
@@ -111,63 +114,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showExportSnackbar() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('EXPORT COMING SOON', style: AppTypography.label),
-        backgroundColor: AppColors.backgroundRaised,
-      ),
-    );
+    TerminalToast.show(context, 'EXPORT COMING SOON');
   }
 
   Future<void> _showClearConfirmDialog() async {
-    await showDialog<void>(
+    final confirmed = await TerminalDialog.confirm(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.backgroundRaised,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        title: Text('CLEAR ALL DATA?', style: AppTypography.heading),
-        content: Text(
+      title: 'CLEAR ALL DATA?',
+      message:
           'This will permanently delete all dreams, OBE logs, and rundowns. This cannot be undone.',
-          style: AppTypography.bodyMuted,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('CANCEL', style: AppTypography.label),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              final db = GetIt.instance<AppDatabase>();
-              await db.customStatement('DELETE FROM dream_tag_links');
-              await db.customStatement('DELETE FROM dream_character_links');
-              await db.customStatement('DELETE FROM dream_place_links');
-              await db.customStatement('DELETE FROM obe_location_visits');
-              await db.customStatement('DELETE FROM dreams');
-              await db.customStatement('DELETE FROM obe_logs');
-              await db.customStatement('DELETE FROM daily_rundowns');
-              await db.customStatement('DELETE FROM dream_tags');
-              await db.customStatement('DELETE FROM dream_characters');
-              await db.customStatement('DELETE FROM dream_places');
-              if (mounted) {
-                context.read<DreamJournalBloc>().add(LoadDreams());
-                context.read<ObeLogBloc>().add(LoadObeLogs());
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('ALL DATA CLEARED', style: AppTypography.label),
-                    backgroundColor: AppColors.backgroundRaised,
-                  ),
-                );
-              }
-            },
-            child: Text(
-              'CONFIRM',
-              style: AppTypography.label.copyWith(color: AppColors.statusAlert),
-            ),
-          ),
-        ],
-      ),
+      confirmLabel: 'CONFIRM',
+      destructive: true,
     );
+    if (!confirmed || !mounted) return;
+    final db = GetIt.instance<AppDatabase>();
+    await db.customStatement('DELETE FROM dream_tag_links');
+    await db.customStatement('DELETE FROM dream_character_links');
+    await db.customStatement('DELETE FROM dream_place_links');
+    await db.customStatement('DELETE FROM obe_location_visits');
+    await db.customStatement('DELETE FROM dreams');
+    await db.customStatement('DELETE FROM obe_logs');
+    await db.customStatement('DELETE FROM daily_rundowns');
+    await db.customStatement('DELETE FROM dream_tags');
+    await db.customStatement('DELETE FROM dream_characters');
+    await db.customStatement('DELETE FROM dream_places');
+    if (!mounted) return;
+    context.read<DreamJournalBloc>().add(LoadDreams());
+    context.read<ObeLogBloc>().add(LoadObeLogs());
+    TerminalToast.show(context, 'ALL DATA CLEARED', tone: ToastTone.signal);
   }
 
   @override
@@ -410,7 +384,7 @@ class _TimeRow extends StatelessWidget {
             const Spacer(),
             Text(timeLabel, style: AppTypography.labelAmber),
             const SizedBox(width: 6),
-            const Icon(Icons.edit_outlined, size: 13, color: AppColors.amberDim),
+            const TerminalGlyph(Glyphs.edit, size: 12, color: AppColors.amberDim),
           ],
         ),
       ),
@@ -474,9 +448,9 @@ class _ActionRow extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            Icon(
-              Icons.chevron_right,
-              size: 16,
+            TerminalGlyph(
+              Glyphs.chevronRight,
+              size: 14,
               color: labelColor ?? AppColors.textSecondary,
             ),
           ],

@@ -7,6 +7,10 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/empty_readout.dart';
+import '../../../../core/widgets/signal_loader.dart';
+import '../../../../core/widgets/terminal_dialog.dart';
+import '../../../../core/widgets/terminal_glyph.dart';
 
 class AffirmationsManageScreen extends StatefulWidget {
   const AffirmationsManageScreen({super.key});
@@ -20,32 +24,14 @@ class _AffirmationsManageScreenState extends State<AffirmationsManageScreen> {
   final _db = GetIt.instance<AppDatabase>();
 
   Future<void> _delete(ContentItem item) async {
-    final confirm = await showDialog<bool>(
+    final confirm = await TerminalDialog.confirm(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.backgroundSurface,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        title: Text('DELETE AFFIRMATION?', style: AppTypography.heading),
-        content: Text(
-          'This affirmation will be removed from your library.',
-          style: AppTypography.signalText,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text('CANCEL',
-                style: AppTypography.label.copyWith(color: AppColors.amber)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text('DELETE',
-                style: AppTypography.label
-                    .copyWith(color: AppColors.statusAlert)),
-          ),
-        ],
-      ),
+      title: 'DELETE AFFIRMATION?',
+      message: 'This affirmation will be removed from your library.',
+      confirmLabel: 'DELETE',
+      destructive: true,
     );
-    if (confirm == true) {
+    if (confirm) {
       await _db.contentDao.archiveContentItem(item.id);
     }
   }
@@ -61,7 +47,7 @@ class _AffirmationsManageScreenState extends State<AffirmationsManageScreen> {
         title: Text('AFFIRMATIONS', style: AppTypography.heading),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add, size: 20, color: AppColors.amber),
+            icon: const TerminalGlyph(Glyphs.add, size: 18, color: AppColors.amber, weight: FontWeight.w700),
             tooltip: 'New affirmation',
             onPressed: () => context.pushNamed(AppRoutes.affirmationNew),
           ),
@@ -75,27 +61,19 @@ class _AffirmationsManageScreenState extends State<AffirmationsManageScreen> {
         stream: _db.contentDao.watchContentByType(1),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: Text('LOADING...', style: AppTypography.labelAmber),
-            );
+            return const Center(child: SignalLoader());
           }
           final items = snapshot.data ?? const <ContentItem>[];
           if (items.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('NO AFFIRMATIONS.', style: AppTypography.labelAmber),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Tap + to write your first declaration.',
-                      style: AppTypography.signalText,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+            return Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: EmptyReadout(
+                label: 'NO DECLARATIONS — CARRIER IDLE',
+                sublabel: 'Write your first affirmation.',
+                actionLabel: '+ NEW DECLARATION',
+                onAction: () =>
+                    context.pushNamed(AppRoutes.affirmationNew),
+                height: 180,
               ),
             );
           }
@@ -201,24 +179,24 @@ class _AffirmationRow extends StatelessWidget {
             if (!readOnly) ...[
               const SizedBox(width: 8),
               IconButton(
-                icon: const Icon(Icons.edit_outlined,
-                    size: 16, color: AppColors.amber),
+                icon: const TerminalGlyph(Glyphs.edit,
+                    size: 14, color: AppColors.amber),
                 onPressed: onEdit,
                 tooltip: 'Edit',
                 visualDensity: VisualDensity.compact,
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline,
-                    size: 16, color: AppColors.statusAlert),
+                icon: const TerminalGlyph(Glyphs.delete,
+                    size: 14, color: AppColors.statusAlert),
                 onPressed: onDelete,
                 tooltip: 'Delete',
                 visualDensity: VisualDensity.compact,
               ),
             ] else
-              Padding(
-                padding: const EdgeInsets.only(left: 8, top: 2),
-                child: Icon(Icons.lock_outline,
-                    size: 14, color: AppColors.textMuted),
+              const Padding(
+                padding: EdgeInsets.only(left: 8, top: 2),
+                child: TerminalGlyph(Glyphs.lock,
+                    size: 12, color: AppColors.textMuted),
               ),
           ],
         ),
