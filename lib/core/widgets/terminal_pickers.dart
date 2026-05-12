@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import '../theme/neu_surface.dart';
 
-/// Bordered terminal-style date picker. Replaces [showDatePicker].
-/// Three vertical scroll columns (YEAR / MONTH / DAY) — sharp corners, amber
-/// selection band, no Material chrome.
+/// Neumorphic date picker. Replaces [showDatePicker].
+/// Raised pillow shell with an inset well housing three scroll wheels
+/// (YEAR / MONTH / DAY).
 Future<DateTime?> showTerminalDatePicker({
   required BuildContext context,
   required DateTime initialDate,
@@ -24,7 +25,7 @@ Future<DateTime?> showTerminalDatePicker({
   );
 }
 
-/// Bordered terminal-style time picker. Replaces [showTimePicker].
+/// Neumorphic time picker. Replaces [showTimePicker].
 Future<TimeOfDay?> showTerminalTimePicker({
   required BuildContext context,
   required TimeOfDay initialTime,
@@ -86,61 +87,43 @@ class _TerminalDatePickerDialogState
     final months = List<int>.generate(12, (i) => i + 1);
     final days = List<int>.generate(_daysInMonth, (i) => i + 1);
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.backgroundSurface,
-          border: Border.all(color: AppColors.borderStrong),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _PickerHeader(label: 'SELECT DATE'),
-            SizedBox(
-              height: 180,
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: _PickerColumn<int>(
-                      label: 'YEAR',
-                      values: years,
-                      selected: _year,
-                      format: (v) => v.toString(),
-                      onChanged: (v) => setState(() => _year = v),
-                    ),
-                  ),
-                  const _PickerDivider(),
-                  Expanded(
-                    flex: 2,
-                    child: _PickerColumn<int>(
-                      label: 'MONTH',
-                      values: months,
-                      selected: _month,
-                      format: (v) => v.toString().padLeft(2, '0'),
-                      onChanged: (v) => setState(() => _month = v),
-                    ),
-                  ),
-                  const _PickerDivider(),
-                  Expanded(
-                    flex: 2,
-                    child: _PickerColumn<int>(
-                      label: 'DAY',
-                      values: days,
-                      selected: _day.clamp(1, _daysInMonth),
-                      format: (v) => v.toString().padLeft(2, '0'),
-                      onChanged: (v) => setState(() => _day = v),
-                    ),
-                  ),
-                ],
-              ),
+    return _PickerShell(
+      title: 'SELECT DATE',
+      onCancel: () => Navigator.of(context).pop(),
+      onConfirm: _confirm,
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: _PickerColumn<int>(
+              label: 'YEAR',
+              values: years,
+              selected: _year,
+              format: (v) => v.toString(),
+              onChanged: (v) => setState(() => _year = v),
             ),
-            _PickerActions(onCancel: () => Navigator.of(context).pop(),
-                onConfirm: _confirm),
-          ],
-        ),
+          ),
+          Expanded(
+            flex: 2,
+            child: _PickerColumn<int>(
+              label: 'MONTH',
+              values: months,
+              selected: _month,
+              format: (v) => v.toString().padLeft(2, '0'),
+              onChanged: (v) => setState(() => _month = v),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: _PickerColumn<int>(
+              label: 'DAY',
+              values: days,
+              selected: _day.clamp(1, _daysInMonth),
+              format: (v) => v.toString().padLeft(2, '0'),
+              onChanged: (v) => setState(() => _day = v),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -181,48 +164,32 @@ class _TerminalTimePickerDialogState
     final hours = List<int>.generate(24, (i) => i);
     final minutes = List<int>.generate(60, (i) => i);
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 64),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.backgroundSurface,
-          border: Border.all(color: AppColors.borderStrong),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _PickerHeader(label: 'SELECT TIME'),
-            SizedBox(
-              height: 180,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _PickerColumn<int>(
-                      label: 'HR',
-                      values: hours,
-                      selected: _hour,
-                      format: (v) => v.toString().padLeft(2, '0'),
-                      onChanged: (v) => setState(() => _hour = v),
-                    ),
-                  ),
-                  const _PickerDivider(),
-                  Expanded(
-                    child: _PickerColumn<int>(
-                      label: 'MIN',
-                      values: minutes,
-                      selected: _minute,
-                      format: (v) => v.toString().padLeft(2, '0'),
-                      onChanged: (v) => setState(() => _minute = v),
-                    ),
-                  ),
-                ],
-              ),
+    return _PickerShell(
+      title: 'SELECT TIME',
+      insetHorizontal: 64,
+      onCancel: () => Navigator.of(context).pop(),
+      onConfirm: _confirm,
+      child: Row(
+        children: [
+          Expanded(
+            child: _PickerColumn<int>(
+              label: 'HR',
+              values: hours,
+              selected: _hour,
+              format: (v) => v.toString().padLeft(2, '0'),
+              onChanged: (v) => setState(() => _hour = v),
             ),
-            _PickerActions(onCancel: () => Navigator.of(context).pop(),
-                onConfirm: _confirm),
-          ],
-        ),
+          ),
+          Expanded(
+            child: _PickerColumn<int>(
+              label: 'MIN',
+              values: minutes,
+              selected: _minute,
+              format: (v) => v.toString().padLeft(2, '0'),
+              onChanged: (v) => setState(() => _minute = v),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -232,35 +199,73 @@ class _TerminalTimePickerDialogState
 // Shared building blocks
 // ---------------------------------------------------------------------------
 
-class _PickerHeader extends StatelessWidget {
-  const _PickerHeader({required this.label});
-  final String label;
+/// Outer pillow + header + inset well + action row. Used by both pickers.
+class _PickerShell extends StatelessWidget {
+  const _PickerShell({
+    required this.title,
+    required this.child,
+    required this.onCancel,
+    required this.onConfirm,
+    this.insetHorizontal = 32,
+  });
+
+  final String title;
+  final Widget child;
+  final VoidCallback onCancel;
+  final VoidCallback onConfirm;
+  final double insetHorizontal;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.cardPad,
-        vertical: 10,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.backgroundDeep,
-        border: Border(
-          bottom: BorderSide(color: AppColors.borderSubtle),
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.symmetric(horizontal: insetHorizontal),
+      child: NeuRaised(
+        radius: 16,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 2, bottom: 12),
+                child: Row(
+                  children: [
+                    Text(title, style: AppTypography.labelAmber),
+                  ],
+                ),
+              ),
+              NeuInset(
+                radius: 12,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: SizedBox(height: 180, child: child),
+              ),
+              const SizedBox(height: AppSpacing.sectionGap),
+              Row(
+                children: [
+                  Expanded(
+                    child: NeuButton(
+                      label: 'CANCEL',
+                      expand: true,
+                      onPressed: onCancel,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sectionGap),
+                  Expanded(
+                    child: NeuButton(
+                      label: 'CONFIRM',
+                      tone: NeuButtonTone.amber,
+                      expand: true,
+                      onPressed: onConfirm,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-      child: Text(label, style: AppTypography.labelAmber),
     );
-  }
-}
-
-class _PickerDivider extends StatelessWidget {
-  const _PickerDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(width: 1, color: AppColors.borderSubtle);
   }
 }
 
@@ -312,27 +317,29 @@ class _PickerColumnState<T> extends State<_PickerColumn<T>> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          color: AppColors.backgroundDeep,
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
           child: Text(
             widget.label,
-            style: AppTypography.label,
+            style: AppTypography.label.copyWith(
+              color: AppColors.textMuted,
+              letterSpacing: 1.5,
+            ),
             textAlign: TextAlign.center,
           ),
         ),
-        Container(height: 1, color: AppColors.borderSubtle),
         Expanded(
           child: Stack(
             children: [
-              // Selection band — amber-bordered horizontal strip in the center
+              // Selection band — soft amber underline pair centered.
               Center(
                 child: Container(
-                  height: 30,
+                  height: 32,
                   decoration: BoxDecoration(
                     border: Border.symmetric(
-                      horizontal: BorderSide(color: AppColors.amberMuted),
+                      horizontal: BorderSide(
+                        color: AppColors.amberMuted.withValues(alpha: 0.55),
+                      ),
                     ),
                   ),
                 ),
@@ -371,55 +378,6 @@ class _PickerColumnState<T> extends State<_PickerColumn<T>> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _PickerActions extends StatelessWidget {
-  const _PickerActions({required this.onCancel, required this.onConfirm});
-  final VoidCallback onCancel;
-  final VoidCallback onConfirm;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.borderSubtle)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: onCancel,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                child: Text(
-                  'CANCEL',
-                  style: AppTypography.label
-                      .copyWith(color: AppColors.textSecondary),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          ),
-          Container(width: 1, color: AppColors.borderSubtle),
-          Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: onConfirm,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                child: Text(
-                  'CONFIRM',
-                  style: AppTypography.labelAmber,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

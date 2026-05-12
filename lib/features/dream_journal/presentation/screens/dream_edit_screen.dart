@@ -301,7 +301,7 @@ class _DreamEditBodyState extends State<_DreamEditBody> {
     return AppBar(
       backgroundColor: AppColors.backgroundDeep,
       leading: IconButton(
-        icon: const TerminalGlyph(Glyphs.close, size: 16, color: AppColors.textSecondary),
+        icon: const Icon(Icons.close, size: 24, color: AppColors.textSecondary),
         onPressed: () => Navigator.of(context).pop(),
       ),
       title: Text('EDIT DREAM', style: AppTypography.heading),

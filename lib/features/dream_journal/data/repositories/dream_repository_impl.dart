@@ -39,12 +39,12 @@ class DreamRepositoryImpl implements DreamRepository {
       _db.dreamDao.addCharacterToDream(dreamId, characterId);
 
   @override
-  Future<List<Dream>> getDreamsByTag(int tagId) =>
-      _db.dreamDao.getDreamsByTag(tagId);
+  Future<List<Dream>> getDreamsByTags(List<int> tagIds) =>
+      _db.dreamDao.getDreamsByTags(tagIds);
 
   @override
-  Future<List<Dream>> getDreamsByCharacter(int characterId) =>
-      _db.dreamDao.getDreamsByCharacter(characterId);
+  Future<List<Dream>> getDreamsByCharacters(List<int> characterIds) =>
+      _db.dreamDao.getDreamsByCharacters(characterIds);
 
   @override
   Future<void> updateDream(DreamsCompanion companion) async {

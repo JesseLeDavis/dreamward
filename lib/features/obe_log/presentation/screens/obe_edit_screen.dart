@@ -327,7 +327,7 @@ class _ObeEditBodyState extends State<_ObeEditBody> {
     return AppBar(
       backgroundColor: AppColors.backgroundDeep,
       leading: IconButton(
-        icon: const TerminalGlyph(Glyphs.close, size: 16, color: AppColors.textSecondary),
+        icon: const Icon(Icons.close, size: 24, color: AppColors.textSecondary),
         onPressed: () => Navigator.of(context).pop(),
       ),
       title: Text('EDIT SESSION', style: AppTypography.heading),

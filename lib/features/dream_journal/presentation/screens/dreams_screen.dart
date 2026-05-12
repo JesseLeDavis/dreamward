@@ -100,8 +100,7 @@ class _DreamsAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text('DREAM LOG', style: AppTypography.heading),
       actions: [
         IconButton(
-          icon: const TerminalGlyph(Glyphs.add, size: 18,
-              color: AppColors.amber, weight: FontWeight.w700),
+          icon: const Icon(Icons.add, size: 24, color: AppColors.amber),
           onPressed: () => context.pushNamed(AppRoutes.dreamNew),
           tooltip: 'Log Dream',
         ),
@@ -146,79 +145,128 @@ class _FilterBar extends StatelessWidget {
                 border: Border(
                     bottom: BorderSide(color: AppColors.borderSubtle)),
               ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    // Tag filter button
-                    _FilterButton(
-                      label: 'TAG',
-                      glyph: Glyphs.tag,
-                      onTap: () async {
-                        final bloc =
-                            context.read<DreamJournalBloc>();
-                        final result = await showTagPicker(context);
-                        if (result != null && result.isNotEmpty) {
-                          bloc.add(FilterByTag(
-                              result.first.id, result.first.name));
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 12),
+              child: Row(
+                children: [
+                  // Tag filter button — fixed on the left.
+                  _FilterButton(
+                    label: 'TAG',
+                    glyph: Glyphs.tag,
+                    onTap: () async {
+                      final bloc = context.read<DreamJournalBloc>();
+                      final activeIds =
+                          loaded?.activeTagIds ?? const <int>[];
+                      final initial = entityState.tags
+                          .where((t) => activeIds.contains(t.id))
+                          .toList();
+                      final result = await showTagPicker(
+                        context,
+                        initialSelected: initial,
+                      );
+                      if (result == null) return;
+                      bloc.add(FilterByTags(
+                        result.map((t) => t.id).toList(),
+                        result.map((t) => t.name).toList(),
+                      ));
+                    },
+                  ),
+                  const SizedBox(width: 12),
 
-                    // Character filter button
-                    _FilterButton(
-                      label: 'CHARACTER',
-                      glyph: Glyphs.character,
-                      onTap: () async {
-                        final bloc =
-                            context.read<DreamJournalBloc>();
-                        final result = await showCharacterPicker(context);
-                        if (result != null && result.isNotEmpty) {
-                          bloc.add(FilterByCharacter(
-                              result.first.id, result.first.name));
-                        }
-                      },
-                    ),
+                  // Character filter button — fixed on the left.
+                  _FilterButton(
+                    label: 'CHARACTER',
+                    glyph: Glyphs.character,
+                    onTap: () async {
+                      final bloc = context.read<DreamJournalBloc>();
+                      final activeIds =
+                          loaded?.activeCharacterIds ?? const <int>[];
+                      final initial = entityState.characters
+                          .where((c) => activeIds.contains(c.id))
+                          .toList();
+                      final result = await showCharacterPicker(
+                        context,
+                        initialSelected: initial,
+                      );
+                      if (result == null) return;
+                      bloc.add(FilterByCharacters(
+                        result.map((c) => c.id).toList(),
+                        result.map((c) => c.name).toList(),
+                      ));
+                    },
+                  ),
 
-                    // Active filter chip
-                    if (isFiltered) ...[
-                      const SizedBox(width: 10),
-                      Container(
-                        width: 1,
-                        height: 16,
-                        color: AppColors.borderStrong,
-                      ),
-                      const SizedBox(width: 10),
-                      if (loaded!.activeTagId != null)
-                        _ActiveFilterChip(
-                          label: loaded.activeTagName!.toUpperCase(),
-                          color: () {
-                            final tag = entityState.tags
-                                .where((t) => t.id == loaded.activeTagId)
-                                .firstOrNull;
-                            return tag != null
-                                ? _parseTagColor(tag.color)
-                                : AppColors.amber;
-                          }(),
-                          prefix: 'TAG:',
-                          onClear: () => context
-                              .read<DreamJournalBloc>()
-                              .add(ClearDreamFilter()),
-                        )
-                      else if (loaded.activeCharacterId != null)
-                        _ActiveFilterChip(
-                          label:
-                              loaded.activeCharacterName!.toUpperCase(),
-                          color: AppColors.statusSleep,
-                          prefix: 'CHARACTER:',
-                          onClear: () => context
-                              .read<DreamJournalBloc>()
-                              .add(ClearDreamFilter()),
+                  // Active filter chips — fill remaining space, scrollable.
+                  if (isFiltered) ...[
+                    const SizedBox(width: 10),
+                    Container(
+                      width: 1,
+                      height: 16,
+                      color: AppColors.borderStrong,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            for (var i = 0;
+                                i < loaded!.activeTagIds.length;
+                                i++) ...[
+                              if (i > 0) const SizedBox(width: 8),
+                              _ActiveFilterChip(
+                                label:
+                                    loaded.activeTagNames[i].toUpperCase(),
+                                color: () {
+                                  final tagId = loaded.activeTagIds[i];
+                                  final tag = entityState.tags
+                                      .where((t) => t.id == tagId)
+                                      .firstOrNull;
+                                  return tag != null
+                                      ? _parseTagColor(tag.color)
+                                      : AppColors.amber;
+                                }(),
+                                prefix: 'TAG:',
+                                onClear: () {
+                                  final ids =
+                                      List<int>.from(loaded.activeTagIds)
+                                        ..removeAt(i);
+                                  final names = List<String>.from(
+                                      loaded.activeTagNames)
+                                    ..removeAt(i);
+                                  context
+                                      .read<DreamJournalBloc>()
+                                      .add(FilterByTags(ids, names));
+                                },
+                              ),
+                            ],
+                            for (var i = 0;
+                                i < loaded.activeCharacterIds.length;
+                                i++) ...[
+                              if (i > 0 || loaded.activeTagIds.isNotEmpty)
+                                const SizedBox(width: 8),
+                              _ActiveFilterChip(
+                                label: loaded.activeCharacterNames[i]
+                                    .toUpperCase(),
+                                color: AppColors.statusSleep,
+                                prefix: 'CHARACTER:',
+                                onClear: () {
+                                  final ids = List<int>.from(
+                                      loaded.activeCharacterIds)
+                                    ..removeAt(i);
+                                  final names = List<String>.from(
+                                      loaded.activeCharacterNames)
+                                    ..removeAt(i);
+                                  context
+                                      .read<DreamJournalBloc>()
+                                      .add(FilterByCharacters(ids, names));
+                                },
+                              ),
+                            ],
+                          ],
                         ),
-                    ],
+                      ),
+                    ),
                   ],
-                ),
+                ],
               ),
             );
           },
@@ -290,6 +338,8 @@ class _ActiveFilterChip extends StatelessWidget {
             child: Text(
               '$prefix $label',
               style: AppTypography.tag.copyWith(color: color),
+              maxLines: 1,
+              softWrap: false,
             ),
           ),
           GestureDetector(

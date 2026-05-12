@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 
 import '../database/app_database.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_typography.dart';
+import '../theme/neu_surface.dart';
 import '../widgets/terminal_glyph.dart';
 import '../../features/calendar/presentation/bloc/calendar_bloc.dart';
 import '../../features/calendar/presentation/screens/calendar_day_screen.dart';
@@ -384,23 +386,23 @@ class _ScaffoldWithBottomNav extends StatelessWidget {
             height: 1,
             color: AppColors.borderSubtle,
           ),
-          NavigationBar(
-            selectedIndex: navigationShell.currentIndex,
-            onDestinationSelected: (index) {
+          _NeuBottomNav(
+            currentIndex: navigationShell.currentIndex,
+            onSelected: (index) {
               navigationShell.goBranch(
                 index,
                 initialLocation: index == navigationShell.currentIndex,
               );
             },
-            destinations: [
-              _NavDest(label: 'TODAY', glyph: Glyphs.tabToday),
-              _NavDest(label: 'DREAMS', glyph: Glyphs.tabDreams),
-              _NavDest(
+            items: const [
+              _NavItem(label: 'TODAY', glyph: Glyphs.tabToday),
+              _NavItem(label: 'DREAMS', glyph: Glyphs.tabDreams),
+              _NavItem(
                 label: 'OBE',
                 glyph: Glyphs.tabObe,
                 selectedGlyph: Glyphs.tabObeActive,
               ),
-              _NavDest(label: 'LOG', glyph: Glyphs.tabLog),
+              _NavItem(label: 'LOG', glyph: Glyphs.tabLog),
             ],
           ),
         ],
@@ -410,19 +412,108 @@ class _ScaffoldWithBottomNav extends StatelessWidget {
 
 }
 
-class _NavDest extends NavigationDestination {
-  _NavDest({
-    required String label,
-    required String glyph,
-    String? selectedGlyph,
-  }) : super(
-          icon: TerminalGlyph(glyph,
-              size: 18, color: AppColors.textMuted),
-          selectedIcon: TerminalGlyph(
-            selectedGlyph ?? glyph,
-            size: 18,
-            color: AppColors.amber,
+class _NavItem {
+  const _NavItem({
+    required this.label,
+    required this.glyph,
+    this.selectedGlyph,
+  });
+
+  final String label;
+  final String glyph;
+  final String? selectedGlyph;
+}
+
+/// Custom bottom nav. Inactive tabs render exactly like the prior
+/// NavigationBar destinations (muted glyph + label). Active tab wraps
+/// its contents in a NeuInset pillow so it reads as a pressed-in button.
+class _NeuBottomNav extends StatelessWidget {
+  const _NeuBottomNav({
+    required this.currentIndex,
+    required this.onSelected,
+    required this.items,
+  });
+
+  final int currentIndex;
+  final ValueChanged<int> onSelected;
+  final List<_NavItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.backgroundBase,
+      padding: EdgeInsets.only(
+        top: 4,
+        // Pull the nav closer to the home indicator. Keep ~6px so the
+        // active inset pillow doesn't clip into the indicator zone.
+        bottom: (MediaQuery.paddingOf(context).bottom * 0.55).clamp(10, 24),
+        left: 8,
+        right: 8,
+      ),
+      child: SizedBox(
+        height: 50,
+        child: Row(
+          children: [
+            for (int i = 0; i < items.length; i++)
+              Expanded(
+                child: _NavCell(
+                  item: items[i],
+                  selected: i == currentIndex,
+                  onTap: () => onSelected(i),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NavCell extends StatelessWidget {
+  const _NavCell({
+    required this.item,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final _NavItem item;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? AppColors.amber : AppColors.textMuted;
+    final glyph = selected ? (item.selectedGlyph ?? item.glyph) : item.glyph;
+
+    final content = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TerminalGlyph(glyph, size: 18, color: color),
+        const SizedBox(height: 4),
+        Text(
+          item.label,
+          style: AppTypography.navLabel.copyWith(
+            color: color,
+            letterSpacing: 1.5,
           ),
-          label: label,
-        );
+        ),
+      ],
+    );
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: selected
+            ? NeuInset(
+                radius: 10,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Center(child: content),
+              )
+            : Center(child: content),
+      ),
+    );
+  }
 }

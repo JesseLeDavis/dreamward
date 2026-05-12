@@ -13,16 +13,22 @@ class LoadDreams extends DreamJournalEvent {}
 
 class DreamSaved extends DreamJournalEvent {}
 
-class FilterByTag extends DreamJournalEvent {
-  FilterByTag(this.tagId, this.tagName);
-  final int tagId;
-  final String tagName;
+/// Replace the active tag filter with [tagIds] / [tagNames] (parallel lists).
+/// Empty lists clear the tag filter. Character filter is cleared.
+class FilterByTags extends DreamJournalEvent {
+  FilterByTags(this.tagIds, this.tagNames)
+      : assert(tagIds.length == tagNames.length);
+  final List<int> tagIds;
+  final List<String> tagNames;
 }
 
-class FilterByCharacter extends DreamJournalEvent {
-  FilterByCharacter(this.characterId, this.characterName);
-  final int characterId;
-  final String characterName;
+/// Replace the active character filter with [characterIds] / [characterNames].
+/// Empty lists clear the character filter. Tag filter is cleared.
+class FilterByCharacters extends DreamJournalEvent {
+  FilterByCharacters(this.characterIds, this.characterNames)
+      : assert(characterIds.length == characterNames.length);
+  final List<int> characterIds;
+  final List<String> characterNames;
 }
 
 class ClearDreamFilter extends DreamJournalEvent {}
@@ -45,21 +51,23 @@ class DreamJournalLoading extends DreamJournalState {}
 class DreamJournalLoaded extends DreamJournalState {
   DreamJournalLoaded(
     this.dreams, {
-    this.activeTagId,
-    this.activeTagName,
-    this.activeCharacterId,
-    this.activeCharacterName,
+    this.activeTagIds = const [],
+    this.activeTagNames = const [],
+    this.activeCharacterIds = const [],
+    this.activeCharacterNames = const [],
     this.activeSearchQuery,
   });
   final List<Dream> dreams;
-  final int? activeTagId;
-  final String? activeTagName;
-  final int? activeCharacterId;
-  final String? activeCharacterName;
+  final List<int> activeTagIds;
+  final List<String> activeTagNames;
+  final List<int> activeCharacterIds;
+  final List<String> activeCharacterNames;
   final String? activeSearchQuery;
 
-  bool get isFiltered => activeTagId != null || activeCharacterId != null;
-  bool get isSearching => activeSearchQuery != null && activeSearchQuery!.isNotEmpty;
+  bool get isFiltered =>
+      activeTagIds.isNotEmpty || activeCharacterIds.isNotEmpty;
+  bool get isSearching =>
+      activeSearchQuery != null && activeSearchQuery!.isNotEmpty;
 }
 
 class DreamJournalError extends DreamJournalState {
@@ -77,8 +85,8 @@ class DreamJournalBloc extends Bloc<DreamJournalEvent, DreamJournalState> {
         super(DreamJournalInitial()) {
     on<LoadDreams>(_onLoadDreams);
     on<DreamSaved>(_onDreamSaved);
-    on<FilterByTag>(_onFilterByTag);
-    on<FilterByCharacter>(_onFilterByCharacter);
+    on<FilterByTags>(_onFilterByTags);
+    on<FilterByCharacters>(_onFilterByCharacters);
     on<ClearDreamFilter>(_onClearFilter);
     on<SearchDreams>(_onSearchDreams);
   }
@@ -105,13 +113,13 @@ class DreamJournalBloc extends Bloc<DreamJournalEvent, DreamJournalState> {
     // Re-load with current filter/search if one is active.
     final current = state;
     if (current is DreamJournalLoaded) {
-      if (current.isFiltered) {
-        if (current.activeTagId != null) {
-          add(FilterByTag(current.activeTagId!, current.activeTagName!));
-        } else if (current.activeCharacterId != null) {
-          add(FilterByCharacter(
-              current.activeCharacterId!, current.activeCharacterName!));
-        }
+      if (current.activeTagIds.isNotEmpty) {
+        add(FilterByTags(current.activeTagIds, current.activeTagNames));
+        return;
+      }
+      if (current.activeCharacterIds.isNotEmpty) {
+        add(FilterByCharacters(
+            current.activeCharacterIds, current.activeCharacterNames));
         return;
       }
       if (current.isSearching) {
@@ -128,34 +136,43 @@ class DreamJournalBloc extends Bloc<DreamJournalEvent, DreamJournalState> {
     }
   }
 
-  Future<void> _onFilterByTag(
-    FilterByTag event,
+  Future<void> _onFilterByTags(
+    FilterByTags event,
     Emitter<DreamJournalState> emit,
   ) async {
+    if (event.tagIds.isEmpty) {
+      add(ClearDreamFilter());
+      return;
+    }
     emit(DreamJournalLoading());
     try {
-      final dreams = await _repository.getDreamsByTag(event.tagId);
+      final dreams = await _repository.getDreamsByTags(event.tagIds);
       emit(DreamJournalLoaded(
         dreams,
-        activeTagId: event.tagId,
-        activeTagName: event.tagName,
+        activeTagIds: event.tagIds,
+        activeTagNames: event.tagNames,
       ));
     } catch (e) {
       emit(DreamJournalError(e.toString()));
     }
   }
 
-  Future<void> _onFilterByCharacter(
-    FilterByCharacter event,
+  Future<void> _onFilterByCharacters(
+    FilterByCharacters event,
     Emitter<DreamJournalState> emit,
   ) async {
+    if (event.characterIds.isEmpty) {
+      add(ClearDreamFilter());
+      return;
+    }
     emit(DreamJournalLoading());
     try {
-      final dreams = await _repository.getDreamsByCharacter(event.characterId);
+      final dreams =
+          await _repository.getDreamsByCharacters(event.characterIds);
       emit(DreamJournalLoaded(
         dreams,
-        activeCharacterId: event.characterId,
-        activeCharacterName: event.characterName,
+        activeCharacterIds: event.characterIds,
+        activeCharacterNames: event.characterNames,
       ));
     } catch (e) {
       emit(DreamJournalError(e.toString()));

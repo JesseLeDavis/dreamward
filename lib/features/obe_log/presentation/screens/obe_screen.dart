@@ -116,8 +116,7 @@ class _ObeAppBar extends StatelessWidget implements PreferredSizeWidget {
           tooltip: 'Field Guide',
         ),
         IconButton(
-          icon: const TerminalGlyph(Glyphs.add, size: 18,
-              color: AppColors.amber, weight: FontWeight.w700),
+          icon: const Icon(Icons.add, size: 24, color: AppColors.amber),
           onPressed: () => context.pushNamed(AppRoutes.obeNew),
           tooltip: 'Log OBE',
         ),

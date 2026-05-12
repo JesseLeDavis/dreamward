@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/neu_surface.dart';
 import '../../../../core/widgets/signal_loader.dart';
-import '../../../../core/widgets/terminal_glyph.dart';
 import '../../../../core/widgets/terminal_toast.dart';
 import '../bloc/entity_cubit.dart';
 
@@ -73,32 +73,26 @@ class _CharacterNewBodyState extends State<_CharacterNewBody> {
       backgroundColor: AppColors.backgroundBase,
       appBar: _buildAppBar(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.screenH,
-          vertical: AppSpacing.screenV,
-        ),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _LabeledField(
               label: 'NAME',
-              child: _BorderedTextField(
+              child: _NeuTextField(
                 controller: _nameController,
                 hintText: '---',
-                maxLines: 1,
                 textCapitalization: TextCapitalization.words,
               ),
             ),
             const SizedBox(height: AppSpacing.sectionGap),
 
-            // Real person toggle
-            Container(
+            NeuRaised(
+              radius: 14,
+              intensity: 0.7,
               padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.cardPad, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.backgroundSurface,
-                border: Border.all(color: AppColors.borderNormal),
-                borderRadius: BorderRadius.circular(12),
+                horizontal: AppSpacing.cardPad,
+                vertical: 6,
               ),
               child: Row(
                 children: [
@@ -108,8 +102,9 @@ class _CharacterNewBodyState extends State<_CharacterNewBody> {
                     value: _isRealPerson,
                     onChanged: (v) => setState(() => _isRealPerson = v),
                     activeThumbColor: AppColors.amber,
-                    inactiveThumbColor: AppColors.borderStrong,
-                    inactiveTrackColor: AppColors.backgroundDeep,
+                    activeTrackColor: AppColors.amberMuted,
+                    inactiveThumbColor: NeuColors.inkMuted,
+                    inactiveTrackColor: NeuColors.surfaceInset,
                   ),
                 ],
               ),
@@ -118,10 +113,9 @@ class _CharacterNewBodyState extends State<_CharacterNewBody> {
 
             _LabeledField(
               label: 'ARCHETYPE / ROLE',
-              child: _BorderedTextField(
+              child: _NeuTextField(
                 controller: _archetypeController,
                 hintText: 'e.g. MENTOR / SHADOW / GUIDE',
-                maxLines: 1,
                 textCapitalization: TextCapitalization.characters,
               ),
             ),
@@ -129,11 +123,13 @@ class _CharacterNewBodyState extends State<_CharacterNewBody> {
 
             _LabeledField(
               label: 'NOTES',
-              child: _BorderedTextField(
+              child: _NeuTextField(
                 controller: _descriptionController,
                 hintText: '---',
                 maxLines: null,
-                minLines: 4,
+                minLines: 5,
+                narrative: true,
+                textCapitalization: TextCapitalization.sentences,
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -145,27 +141,27 @@ class _CharacterNewBodyState extends State<_CharacterNewBody> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.backgroundDeep,
+      backgroundColor: AppColors.backgroundBase,
+      elevation: 0,
       leading: IconButton(
-        icon: const TerminalGlyph(Glyphs.close, size: 16, color: AppColors.textSecondary),
+        icon: const Icon(Icons.close, size: 24, color: AppColors.textSecondary),
         onPressed: () => Navigator.of(context).pop(),
       ),
       title: Text('LOG CHARACTER', style: AppTypography.heading),
       actions: [
-        TextButton(
-          onPressed: _saving ? null : _save,
-          child: _saving
-              ? const MiniSignalLoader()
-              : Text(
-                  'SAVE',
-                  style: AppTypography.label.copyWith(color: AppColors.amber),
-                ),
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: TextButton(
+            onPressed: _saving ? null : _save,
+            child: _saving
+                ? const MiniSignalLoader()
+                : Text(
+                    'SAVE',
+                    style: AppTypography.label.copyWith(color: AppColors.amber),
+                  ),
+          ),
         ),
       ],
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
-        child: Container(height: 1, color: AppColors.borderSubtle),
-      ),
     );
   }
 }
@@ -181,20 +177,23 @@ class _LabeledField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTypography.label),
-        const SizedBox(height: 6),
+        Padding(
+          padding: const EdgeInsets.only(left: 2, bottom: 8),
+          child: Text(label, style: AppTypography.label),
+        ),
         child,
       ],
     );
   }
 }
 
-class _BorderedTextField extends StatelessWidget {
-  const _BorderedTextField({
+class _NeuTextField extends StatelessWidget {
+  const _NeuTextField({
     required this.controller,
     this.hintText,
     this.maxLines = 1,
     this.minLines,
+    this.narrative = false,
     this.textCapitalization = TextCapitalization.none,
   });
 
@@ -202,26 +201,27 @@ class _BorderedTextField extends StatelessWidget {
   final String? hintText;
   final int? maxLines;
   final int? minLines;
+  final bool narrative;
   final TextCapitalization textCapitalization;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.borderNormal,
-        border: Border.all(color: AppColors.borderStrong.withValues(alpha: 0.6)),
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return NeuInset(
+      radius: 12,
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       child: TextField(
         controller: controller,
-        style: AppTypography.body,
+        style: narrative ? AppTypography.neuBody() : AppTypography.body,
         maxLines: maxLines,
         minLines: minLines,
+        cursorColor: AppColors.amber,
         textCapitalization: textCapitalization,
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: AppTypography.hint,
-          contentPadding: const EdgeInsets.all(AppSpacing.cardPad),
+          hintStyle: narrative ? AppTypography.neuHint() : AppTypography.hint,
+          isCollapsed: true,
+          filled: false,
+          contentPadding: EdgeInsets.zero,
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,

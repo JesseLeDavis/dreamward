@@ -7,6 +7,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/neu_surface.dart';
 import '../../../../core/widgets/data_tag.dart';
 import '../../../../core/widgets/field_section.dart';
 import '../../../../core/widgets/signal_loader.dart';
@@ -177,7 +178,10 @@ class _CalendarDayScreenState extends State<CalendarDayScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: NeuButton(
+                      label: '+ LOG DREAM',
+                      icon: null,
+                      expand: true,
                       onPressed: () async {
                         await context.pushNamed(
                           AppRoutes.dreamNew,
@@ -185,17 +189,13 @@ class _CalendarDayScreenState extends State<CalendarDayScreen> {
                         );
                         _refresh();
                       },
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.borderSubtle),
-                        foregroundColor: AppColors.textSecondary,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                      ),
-                      child: const Text('+ LOG DREAM'),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sectionGap),
                   Expanded(
-                    child: OutlinedButton(
+                    child: NeuButton(
+                      label: '+ LOG OBE',
+                      expand: true,
                       onPressed: () async {
                         await context.pushNamed(
                           AppRoutes.obeNew,
@@ -203,12 +203,6 @@ class _CalendarDayScreenState extends State<CalendarDayScreen> {
                         );
                         _refresh();
                       },
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.borderSubtle),
-                        foregroundColor: AppColors.textSecondary,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                      ),
-                      child: const Text('+ LOG OBE'),
                     ),
                   ),
                 ],

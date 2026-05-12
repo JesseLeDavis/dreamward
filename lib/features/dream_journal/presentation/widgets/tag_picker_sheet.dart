@@ -5,8 +5,8 @@ import '../../../../core/database/app_database.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/neu_surface.dart';
 import '../../../../core/widgets/signal_loader.dart';
-import '../../../../core/widgets/terminal_glyph.dart';
 import '../bloc/entity_cubit.dart';
 
 // Preset tag colors (hex strings stored in DB).
@@ -30,8 +30,7 @@ Future<List<DreamTag>?> showTagPicker(
   return showModalBottomSheet<List<DreamTag>>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.backgroundDeep,
-    shape: const Border(top: BorderSide(color: AppColors.borderNormal)),
+    backgroundColor: Colors.transparent,
     builder: (_) => BlocProvider.value(
       value: context.read<EntityCubit>(),
       child: _TagPickerSheet(initialSelected: initialSelected),
@@ -110,178 +109,102 @@ class _TagPickerSheetState extends State<_TagPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomPad = MediaQuery.of(context).viewInsets.bottom;
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomPad),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 10),
-            width: 36,
-            height: 3,
-            color: AppColors.borderStrong,
-          ),
+    return _NeuSheetShell(
+      title: 'SELECT TAGS',
+      onDone: () => Navigator.of(context).pop(_selected),
+      children: [
+        _NeuSearchField(
+          controller: _searchController,
+          hint: 'SEARCH TAGS...',
+        ),
+        const SizedBox(height: AppSpacing.cardGap),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 280),
+          child: BlocBuilder<EntityCubit, EntityState>(
+            builder: (context, entityState) {
+              final all = entityState.tags;
+              final query = _searchController.text;
+              final displayed = query.trim().isEmpty
+                  ? all
+                  : all
+                      .where((t) => t.name
+                          .toLowerCase()
+                          .contains(query.toLowerCase()))
+                      .toList();
 
-          // Header
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screenH, vertical: 4),
-            child: Row(
-              children: [
-                Text('SELECT TAGS', style: AppTypography.heading),
-                const Spacer(),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(_selected),
+              if (displayed.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 28),
                   child: Text(
-                    'DONE',
-                    style:
-                        AppTypography.label.copyWith(color: AppColors.amber),
+                    query.isEmpty
+                        ? 'NO TAGS YET — CREATE ONE BELOW'
+                        : 'NO MATCH FOR "${query.toUpperCase()}"',
+                    style: AppTypography.bodyMuted,
+                    textAlign: TextAlign.center,
                   ),
-                ),
-              ],
-            ),
-          ),
+                );
+              }
 
-          const Divider(height: 1),
-
-          // Search field
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screenH, vertical: 8),
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.backgroundSurface,
-                border: Border.all(color: AppColors.borderNormal),
-              ),
-              child: TextField(
-                controller: _searchController,
-                style: AppTypography.body,
-                autofocus: false,
-                decoration: InputDecoration(
-                  hintText: 'SEARCH TAGS...',
-                  hintStyle: AppTypography.hint,
-                  prefixIcon: const TerminalGlyph(Glyphs.search,
-                      size: 14, color: AppColors.textMuted),
-                  prefixIconConstraints:
-                      const BoxConstraints(minWidth: 36, minHeight: 36),
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.cardPad, vertical: 8),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                ),
-              ),
-            ),
-          ),
-
-          // Tag list — constrained height
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 240),
-            child: BlocBuilder<EntityCubit, EntityState>(
-              builder: (context, entityState) {
-                // Re-filter when state changes (e.g. after tag created).
-                final all = entityState.tags;
-                final query = _searchController.text;
-                final displayed = query.trim().isEmpty
-                    ? all
-                    : all
-                        .where((t) => t.name
-                            .toLowerCase()
-                            .contains(query.toLowerCase()))
-                        .toList();
-
-                if (displayed.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: Text(
-                      query.isEmpty
-                          ? 'NO TAGS YET. CREATE ONE BELOW.'
-                          : 'NO MATCH — CREATE "${query.toUpperCase()}"?',
-                      style: AppTypography.signalText,
-                      textAlign: TextAlign.center,
-                    ),
-                  );
-                }
-
-                return ListView.builder(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.screenH),
-                  itemCount: displayed.length,
-                  itemBuilder: (context, i) {
-                    final tag = displayed[i];
-                    final selected = _isSelected(tag);
-                    final tagColor = _parseColor(tag.color);
-                    return GestureDetector(
-                      onTap: () => _toggleTag(tag),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 4),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.cardPad, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? AppColors.amberMuted
-                              : AppColors.backgroundSurface,
-                          border: Border.all(
-                            color: selected
-                                ? AppColors.amber
-                                : AppColors.borderNormal,
+              return ListView.separated(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                itemCount: displayed.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (context, i) {
+                  final tag = displayed[i];
+                  return _PickerRow(
+                    selected: _isSelected(tag),
+                    onTap: () => _toggleTag(tag),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: _parseColor(tag.color),
+                            shape: BoxShape.circle,
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: tagColor,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(tag.name.toUpperCase(),
-                                style: AppTypography.label),
-                            const Spacer(),
-                            if (selected)
-                              const TerminalGlyph(Glyphs.check,
-                                  size: 12, color: AppColors.amber),
-                          ],
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            tag.name.toUpperCase(),
+                            style: AppTypography.label,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+                        if (_isSelected(tag))
+                          const Icon(Icons.check,
+                              size: 18, color: AppColors.amber),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
           ),
-
-          // Create new tag
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screenH, vertical: 8),
-            child: _showCreateForm
-                ? _CreateTagForm(
-                    nameController: _newNameController,
-                    selectedColor: _newTagColor,
-                    creating: _creating,
-                    onColorSelected: (c) => setState(() => _newTagColor = c),
-                    onCancel: () => setState(() {
-                      _showCreateForm = false;
-                      _newNameController.clear();
-                    }),
-                    onSave: _createTag,
-                  )
-                : OutlinedButton(
-                    onPressed: () => setState(() => _showCreateForm = true),
-                    child: const Text('+ CREATE NEW TAG'),
-                  ),
+        ),
+        const SizedBox(height: AppSpacing.cardGap),
+        if (_showCreateForm)
+          _CreateTagForm(
+            nameController: _newNameController,
+            selectedColor: _newTagColor,
+            creating: _creating,
+            onColorSelected: (c) => setState(() => _newTagColor = c),
+            onCancel: () => setState(() {
+              _showCreateForm = false;
+              _newNameController.clear();
+            }),
+            onSave: _createTag,
+            parseColor: _parseColor,
+          )
+        else
+          NeuButton(
+            label: '+ CREATE NEW TAG',
+            expand: true,
+            onPressed: () => setState(() => _showCreateForm = true),
           ),
-
-          const SizedBox(height: 8),
-        ],
-      ),
+      ],
     );
   }
 }
@@ -294,6 +217,7 @@ class _CreateTagForm extends StatelessWidget {
     required this.onColorSelected,
     required this.onCancel,
     required this.onSave,
+    required this.parseColor,
   });
 
   final TextEditingController nameController;
@@ -302,33 +226,24 @@ class _CreateTagForm extends StatelessWidget {
   final ValueChanged<String> onColorSelected;
   final VoidCallback onCancel;
   final VoidCallback onSave;
-
-  Color _parseColor(String hex) {
-    try {
-      return Color(int.parse(hex.replaceFirst('#', '0xFF')));
-    } catch (_) {
-      return AppColors.amber;
-    }
-  }
+  final Color Function(String) parseColor;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return NeuRaised(
+      radius: 14,
+      intensity: 0.7,
       padding: const EdgeInsets.all(AppSpacing.cardPad),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundSurface,
-        border: Border.all(color: AppColors.amber),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('NEW TAG', style: AppTypography.label.copyWith(color: AppColors.amber)),
-          const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.backgroundDeep,
-              border: Border.all(color: AppColors.borderNormal),
-            ),
+          Text('NEW TAG',
+              style:
+                  AppTypography.label.copyWith(color: AppColors.amber)),
+          const SizedBox(height: 10),
+          NeuInset(
+            radius: 10,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: TextField(
               controller: nameController,
               style: AppTypography.body,
@@ -336,19 +251,21 @@ class _CreateTagForm extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: 'TAG NAME',
                 hintStyle: AppTypography.hint,
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.cardPad, vertical: 8),
+                isCollapsed: true,
+                filled: false,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text('COLOR', style: AppTypography.label),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Wrap(
-            spacing: 6,
+            spacing: 8,
+            runSpacing: 8,
             children: _kTagColors.map((hex) {
               final isSelected = hex == selectedColor;
               return GestureDetector(
@@ -357,9 +274,12 @@ class _CreateTagForm extends StatelessWidget {
                   width: 28,
                   height: 28,
                   decoration: BoxDecoration(
-                    color: _parseColor(hex),
+                    color: parseColor(hex),
+                    shape: BoxShape.circle,
                     border: Border.all(
-                      color: isSelected ? AppColors.amber : Colors.transparent,
+                      color: isSelected
+                          ? AppColors.amber
+                          : Colors.transparent,
                       width: 2,
                     ),
                   ),
@@ -367,26 +287,254 @@ class _CreateTagForm extends StatelessWidget {
               );
             }).toList(),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.sectionGap),
           Row(
             children: [
-              TextButton(
-                onPressed: onCancel,
-                child: Text('CANCEL',
-                    style: AppTypography.label
-                        .copyWith(color: AppColors.textMuted)),
+              Expanded(
+                child: NeuButton(
+                  label: 'CANCEL',
+                  expand: true,
+                  onPressed: creating ? null : onCancel,
+                ),
               ),
-              const Spacer(),
-              FilledButton(
-                onPressed: creating ? null : onSave,
-                child: creating
-                    ? const MiniSignalLoader(color: AppColors.textInverse)
-                    : const Text('SAVE'),
+              const SizedBox(width: AppSpacing.sectionGap),
+              Expanded(
+                child: NeuButton(
+                  label: 'SAVE',
+                  tone: NeuButtonTone.amber,
+                  expand: true,
+                  onPressed: creating ? null : onSave,
+                ),
               ),
             ],
+          ),
+          if (creating) ...[
+            const SizedBox(height: 10),
+            const Center(child: MiniSignalLoader(color: AppColors.amber)),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Shared shell + row primitives (also used by character_picker_sheet)
+// ---------------------------------------------------------------------------
+
+/// Outer shell for neu-styled bottom sheets: rounded top, drag handle,
+/// title + DONE button, then the supplied content.
+class _NeuSheetShell extends StatelessWidget {
+  const _NeuSheetShell({
+    required this.title,
+    required this.onDone,
+    required this.children,
+  });
+
+  final String title;
+  final VoidCallback onDone;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomPad = MediaQuery.viewInsetsOf(context).bottom;
+    final safeBottom = MediaQuery.paddingOf(context).bottom;
+    return DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.4,
+      maxChildSize: 0.92,
+      expand: false,
+      builder: (context, scrollCtrl) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: NeuColors.surfaceBase,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            boxShadow: [
+              BoxShadow(
+                color: NeuColors.shadowDark,
+                blurRadius: 18,
+                offset: Offset(0, -4),
+              ),
+            ],
+          ),
+          padding: EdgeInsets.only(bottom: bottomPad),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 10, bottom: 6),
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: NeuColors.inkMuted,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.screenH, 8, 8, 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(title, style: AppTypography.heading),
+                    ),
+                    GestureDetector(
+                      onTap: onDone,
+                      behavior: HitTestBehavior.opaque,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        child: Text(
+                          'DONE',
+                          style: AppTypography.label
+                              .copyWith(color: AppColors.amber),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: SingleChildScrollView(
+                  controller: scrollCtrl,
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.screenH,
+                    4,
+                    AppSpacing.screenH,
+                    16 + safeBottom,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: children,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Recessed search field — NeuInset well with a Material search icon.
+class _NeuSearchField extends StatelessWidget {
+  const _NeuSearchField({required this.controller, required this.hint});
+
+  final TextEditingController controller;
+  final String hint;
+
+  @override
+  Widget build(BuildContext context) {
+    return NeuInset(
+      radius: 12,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: [
+          const Icon(Icons.search, size: 18, color: AppColors.textMuted),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              style: AppTypography.body,
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: AppTypography.hint,
+                isCollapsed: true,
+                filled: false,
+                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
+}
+
+/// A selectable row: raised pillow at rest, pressed-in well when selected.
+class _PickerRow extends StatelessWidget {
+  const _PickerRow({
+    required this.child,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Widget child;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final padding =
+        const EdgeInsets.symmetric(horizontal: AppSpacing.cardPad, vertical: 14);
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: selected
+          ? NeuInset(radius: 12, padding: padding, child: child)
+          : NeuRaised(
+              radius: 12,
+              intensity: 0.55,
+              padding: padding,
+              child: child,
+            ),
+    );
+  }
+}
+
+// Re-export the shell + search field + row for the character sheet.
+// (Kept in this file so we only have one source of truth for the shell.)
+class NeuSheetShell extends StatelessWidget {
+  const NeuSheetShell({
+    super.key,
+    required this.title,
+    required this.onDone,
+    required this.children,
+  });
+
+  final String title;
+  final VoidCallback onDone;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) =>
+      _NeuSheetShell(title: title, onDone: onDone, children: children);
+}
+
+class NeuSearchField extends StatelessWidget {
+  const NeuSearchField({
+    super.key,
+    required this.controller,
+    required this.hint,
+  });
+
+  final TextEditingController controller;
+  final String hint;
+
+  @override
+  Widget build(BuildContext context) =>
+      _NeuSearchField(controller: controller, hint: hint);
+}
+
+class PickerRow extends StatelessWidget {
+  const PickerRow({
+    super.key,
+    required this.child,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Widget child;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) =>
+      _PickerRow(selected: selected, onTap: onTap, child: child);
 }

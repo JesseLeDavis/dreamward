@@ -228,21 +228,31 @@ class DreamDao extends DatabaseAccessor<AppDatabase> with _$DreamDaoMixin {
 
   // --- Filter by entity ---
 
-  Future<List<Dream>> getDreamsByTag(int tagId) async {
-    final query = select(dreamTagLinks).join([
-      innerJoin(dreams, dreams.id.equalsExp(dreamTagLinks.dreamId)),
+  /// Returns dreams that have AT LEAST ONE of [tagIds] linked.
+  /// Empty list short-circuits to an empty result.
+  Future<List<Dream>> getDreamsByTags(List<int> tagIds) async {
+    if (tagIds.isEmpty) return const [];
+    final query = select(dreams).join([
+      innerJoin(dreamTagLinks, dreamTagLinks.dreamId.equalsExp(dreams.id)),
     ])
-      ..where(dreamTagLinks.tagId.equals(tagId) & dreams.isArchived.equals(false))
+      ..where(dreamTagLinks.tagId.isIn(tagIds) &
+          dreams.isArchived.equals(false))
+      ..groupBy([dreams.id])
       ..orderBy([OrderingTerm.desc(dreams.createdAt)]);
     final rows = await query.get();
     return rows.map((r) => r.readTable(dreams)).toList();
   }
 
-  Future<List<Dream>> getDreamsByCharacter(int characterId) async {
-    final query = select(dreamCharacterLinks).join([
-      innerJoin(dreams, dreams.id.equalsExp(dreamCharacterLinks.dreamId)),
+  /// Returns dreams that have AT LEAST ONE of [characterIds] linked.
+  Future<List<Dream>> getDreamsByCharacters(List<int> characterIds) async {
+    if (characterIds.isEmpty) return const [];
+    final query = select(dreams).join([
+      innerJoin(dreamCharacterLinks,
+          dreamCharacterLinks.dreamId.equalsExp(dreams.id)),
     ])
-      ..where(dreamCharacterLinks.characterId.equals(characterId) & dreams.isArchived.equals(false))
+      ..where(dreamCharacterLinks.characterId.isIn(characterIds) &
+          dreams.isArchived.equals(false))
+      ..groupBy([dreams.id])
       ..orderBy([OrderingTerm.desc(dreams.createdAt)]);
     final rows = await query.get();
     return rows.map((r) => r.readTable(dreams)).toList();

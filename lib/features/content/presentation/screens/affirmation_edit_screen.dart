@@ -8,7 +8,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/signal_loader.dart';
 import '../../../../core/widgets/terminal_dialog.dart';
-import '../../../../core/widgets/terminal_glyph.dart';
 import '../../../../core/widgets/terminal_toast.dart';
 
 /// Create or edit a user-owned affirmation. Built-ins are not routed here.
@@ -115,8 +114,8 @@ class _AffirmationEditScreenState extends State<AffirmationEditScreen> {
         appBar: AppBar(
           backgroundColor: AppColors.backgroundDeep,
           leading: IconButton(
-            icon: const TerminalGlyph(Glyphs.close,
-                size: 16, color: AppColors.textSecondary),
+            icon: const Icon(Icons.close,
+                size: 24, color: AppColors.textSecondary),
             onPressed: () => Navigator.of(context).maybePop(),
           ),
           title: Text(

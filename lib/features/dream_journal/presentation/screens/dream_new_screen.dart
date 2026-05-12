@@ -311,8 +311,8 @@ class _DreamNewBodyState extends State<_DreamNewBody> {
       backgroundColor: NeuColors.surfaceBase,
       elevation: 0,
       leading: IconButton(
-        icon: const TerminalGlyph(Glyphs.close,
-            size: 16, color: NeuColors.inkSecondary),
+        icon: const Icon(Icons.close,
+            size: 24, color: NeuColors.inkSecondary),
         onPressed: () => Navigator.of(context).maybePop(),
       ),
       title: Text(

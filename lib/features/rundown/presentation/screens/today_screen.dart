@@ -270,7 +270,9 @@ class _TodayAppBar extends StatelessWidget implements PreferredSizeWidget {
           tooltip: 'Field Guide',
         ),
         IconButton(
-          icon: const TerminalGlyph(Glyphs.settings, size: 16),
+          icon: const Icon(Icons.settings_outlined,
+              size: 20, color: AppColors.textSecondary),
+          tooltip: 'Settings',
           onPressed: () => context.pushNamed(AppRoutes.settings),
         ),
       ],

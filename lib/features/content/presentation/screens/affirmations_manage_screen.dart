@@ -48,7 +48,7 @@ class _AffirmationsManageScreenState extends State<AffirmationsManageScreen> {
         title: Text('AFFIRMATIONS', style: AppTypography.heading),
         actions: [
           IconButton(
-            icon: const TerminalGlyph(Glyphs.add, size: 18, color: AppColors.amber, weight: FontWeight.w700),
+            icon: const Icon(Icons.add, size: 24, color: AppColors.amber),
             tooltip: 'New affirmation',
             onPressed: () => context.pushNamed(AppRoutes.affirmationNew),
           ),
@@ -180,15 +180,15 @@ class _AffirmationRow extends StatelessWidget {
             if (!readOnly) ...[
               const SizedBox(width: 8),
               IconButton(
-                icon: const TerminalGlyph(Glyphs.edit,
-                    size: 14, color: AppColors.amber),
+                icon: const Icon(Icons.edit_outlined,
+                    size: 20, color: AppColors.amber),
                 onPressed: onEdit,
                 tooltip: 'Edit',
                 visualDensity: VisualDensity.compact,
               ),
               IconButton(
-                icon: const TerminalGlyph(Glyphs.delete,
-                    size: 14, color: AppColors.statusAlert),
+                icon: const Icon(Icons.delete_outline,
+                    size: 20, color: AppColors.statusAlert),
                 onPressed: onDelete,
                 tooltip: 'Delete',
                 visualDensity: VisualDensity.compact,

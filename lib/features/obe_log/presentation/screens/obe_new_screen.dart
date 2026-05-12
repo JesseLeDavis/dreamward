@@ -327,8 +327,8 @@ class _ObeNewBodyState extends State<_ObeNewBody> {
       backgroundColor: AppColors.backgroundBase,
       elevation: 0,
       leading: IconButton(
-        icon: const TerminalGlyph(Glyphs.close,
-            size: 16, color: AppColors.textSecondary),
+        icon: const Icon(Icons.close,
+            size: 24, color: AppColors.textSecondary),
         onPressed: () => Navigator.of(context).maybePop(),
       ),
       title: Text('LOG SESSION', style: AppTypography.heading),
