@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
@@ -389,6 +390,9 @@ class _ScaffoldWithBottomNav extends StatelessWidget {
           _NeuBottomNav(
             currentIndex: navigationShell.currentIndex,
             onSelected: (index) {
+              if (index != navigationShell.currentIndex) {
+                HapticFeedback.selectionClick();
+              }
               navigationShell.goBranch(
                 index,
                 initialLocation: index == navigationShell.currentIndex,

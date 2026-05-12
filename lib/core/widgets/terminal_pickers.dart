@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
@@ -350,8 +351,10 @@ class _PickerColumnState<T> extends State<_PickerColumn<T>> {
                 physics: const FixedExtentScrollPhysics(),
                 perspective: 0.003,
                 diameterRatio: 1.6,
-                onSelectedItemChanged: (i) =>
-                    widget.onChanged(widget.values[i]),
+                onSelectedItemChanged: (i) {
+                  HapticFeedback.selectionClick();
+                  widget.onChanged(widget.values[i]);
+                },
                 childDelegate: ListWheelChildBuilderDelegate(
                   childCount: widget.values.length,
                   builder: (context, i) {

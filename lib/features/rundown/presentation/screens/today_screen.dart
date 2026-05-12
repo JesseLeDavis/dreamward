@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
@@ -304,17 +305,24 @@ class _AffirmationSection extends StatelessWidget {
     return FieldSection(
       label: 'UNIT 001 / DAILY DECLARATION',
       headerColor: AppColors.amberMuted,
+      recessed: true,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (canCycle)
             GestureDetector(
-              onTap: onCycle,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onCycle();
+              },
               child: Text('NEXT ▶', style: AppTypography.labelAmber),
             ),
           if (canCycle) const SizedBox(width: 12),
           GestureDetector(
-            onTap: () => context.pushNamed(AppRoutes.affirmationsManage),
+            onTap: () {
+              HapticFeedback.lightImpact();
+              context.pushNamed(AppRoutes.affirmationsManage);
+            },
             child: Text('MANAGE', style: AppTypography.label),
           ),
         ],
@@ -873,7 +881,10 @@ class _RitualSection extends StatelessWidget {
                 ),
               ),
               GestureDetector(
-                onTap: onReset,
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  onReset();
+                },
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 8, vertical: 10),
@@ -906,7 +917,12 @@ class _RitualItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: isAuto ? null : onTap,
+      onTap: isAuto
+          ? null
+          : () {
+              HapticFeedback.selectionClick();
+              onTap?.call();
+            },
       behavior: HitTestBehavior.opaque,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

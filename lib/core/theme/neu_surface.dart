@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'app_typography.dart';
 
@@ -262,7 +263,12 @@ class _NeuButtonState extends State<NeuButton> {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTapDown: disabled ? null : (_) => setState(() => _down = true),
+      onTapDown: disabled
+          ? null
+          : (_) {
+              HapticFeedback.lightImpact();
+              setState(() => _down = true);
+            },
       onTapCancel: disabled ? null : () => setState(() => _down = false),
       onTapUp: disabled ? null : (_) => setState(() => _down = false),
       onTap: widget.onPressed,
@@ -279,6 +285,74 @@ class _NeuButtonState extends State<NeuButton> {
                 key: const ValueKey('up'),
                 radius: widget.radius,
                 intensity: 0.65,
+                child: content,
+              ),
+      ),
+    );
+  }
+}
+
+/// Raised pillow that depresses (inset) while the touch is held — the
+/// generic "tappable card" surface. Same press feel as [NeuButton], but
+/// accepts any [child] instead of label+icon. Triggers a light haptic on
+/// press down.
+class NeuPressable extends StatefulWidget {
+  const NeuPressable({
+    super.key,
+    required this.child,
+    required this.onPressed,
+    this.radius = 14,
+    this.padding,
+    this.intensity = 1.0,
+    this.onLongPress,
+  });
+
+  final Widget child;
+  final VoidCallback? onPressed;
+  final VoidCallback? onLongPress;
+  final double radius;
+  final EdgeInsetsGeometry? padding;
+  final double intensity;
+
+  @override
+  State<NeuPressable> createState() => _NeuPressableState();
+}
+
+class _NeuPressableState extends State<NeuPressable> {
+  bool _down = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = widget.onPressed == null;
+    final content = widget.padding == null
+        ? widget.child
+        : Padding(padding: widget.padding!, child: widget.child);
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: disabled
+          ? null
+          : (_) {
+              HapticFeedback.lightImpact();
+              setState(() => _down = true);
+            },
+      onTapCancel: disabled ? null : () => setState(() => _down = false),
+      onTapUp: disabled ? null : (_) => setState(() => _down = false),
+      onTap: widget.onPressed,
+      onLongPress: widget.onLongPress,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 80),
+        transitionBuilder: (c, a) => FadeTransition(opacity: a, child: c),
+        child: _down
+            ? NeuInset(
+                key: const ValueKey('down'),
+                radius: widget.radius,
+                child: content,
+              )
+            : NeuRaised(
+                key: const ValueKey('up'),
+                radius: widget.radius,
+                intensity: widget.intensity,
                 child: content,
               ),
       ),

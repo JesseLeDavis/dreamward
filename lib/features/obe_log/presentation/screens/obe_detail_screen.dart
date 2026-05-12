@@ -221,6 +221,7 @@ class _ObeDetailScreenState extends State<ObeDetailScreen> {
           const SizedBox(height: AppSpacing.sectionGap),
           FieldSection(
             label: 'EXCURSION RECORD',
+            recessed: true,
             child:
                 Text(bodyText, style: AppTypography.narrativeBody),
           ),

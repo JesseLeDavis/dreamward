@@ -424,21 +424,19 @@ class _ObeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: NeuRaised(
-        radius: 14,
-        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _CardHeader(log: log, stateColor: _stateColor),
-            const SizedBox(height: 10),
-            _MonroeStrip(log: log),
-            const SizedBox(height: 10),
-            _CardBody(log: log),
-          ],
-        ),
+    return NeuPressable(
+      radius: 14,
+      padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+      onPressed: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _CardHeader(log: log, stateColor: _stateColor),
+          const SizedBox(height: 10),
+          _MonroeStrip(log: log),
+          const SizedBox(height: 10),
+          _CardBody(log: log),
+        ],
       ),
     );
   }

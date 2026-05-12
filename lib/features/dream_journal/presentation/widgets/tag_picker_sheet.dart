@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/database/app_database.dart';
@@ -474,7 +475,10 @@ class _PickerRow extends StatelessWidget {
     final padding =
         const EdgeInsets.symmetric(horizontal: AppSpacing.cardPad, vertical: 14);
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
       behavior: HitTestBehavior.opaque,
       child: selected
           ? NeuInset(radius: 12, padding: padding, child: child)

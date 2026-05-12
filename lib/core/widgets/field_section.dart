@@ -21,6 +21,7 @@ class FieldSection extends StatelessWidget {
     this.headerColor = AppColors.amberCarrier,
     this.bodyColor = AppColors.backgroundSurface,
     this.borderColor = AppColors.borderNormal,
+    this.recessed = false,
   });
 
   final String label;
@@ -33,6 +34,11 @@ class FieldSection extends StatelessWidget {
   final Color headerColor;
   final Color bodyColor;
   final Color borderColor;
+
+  /// When true, the body is a pressed-in [NeuInset] well instead of a
+  /// raised [NeuRaised] pillow. Use for read-only content that should feel
+  /// sunken into the surface (e.g. record / declaration sections).
+  final bool recessed;
 
   @override
   Widget build(BuildContext context) {
@@ -58,12 +64,19 @@ class FieldSection extends StatelessWidget {
             ],
           ),
         ),
-        // Body — raised neumorphic pillow.
-        NeuRaised(
-          padding: contentPadding,
-          radius: 14,
-          child: child,
-        ),
+        // Body — raised pillow at rest, optionally rendered as an inset well.
+        if (recessed)
+          NeuInset(
+            padding: contentPadding,
+            radius: 14,
+            child: child,
+          )
+        else
+          NeuRaised(
+            padding: contentPadding,
+            radius: 14,
+            child: child,
+          ),
       ],
     );
   }

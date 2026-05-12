@@ -202,15 +202,14 @@ class _CategoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.pushNamed(
+    return NeuPressable(
+      radius: 14,
+      padding: const EdgeInsets.all(AppSpacing.cardPad),
+      onPressed: () => context.pushNamed(
         AppRoutes.exploreCategory,
         pathParameters: {'category': category.slug},
       ),
-      child: NeuRaised(
-        radius: 14,
-        padding: const EdgeInsets.all(AppSpacing.cardPad),
-        child: ConstrainedBox(
+      child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 88),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,7 +252,6 @@ class _CategoryTile extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }

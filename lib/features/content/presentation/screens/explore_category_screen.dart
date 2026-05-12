@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 
@@ -162,71 +163,72 @@ class _ContentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: NeuRaised(
-        radius: 14,
-        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    item.title.toUpperCase(),
-                    style: AppTypography.label,
-                    overflow: TextOverflow.ellipsis,
+    return NeuPressable(
+      radius: 14,
+      padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+      onPressed: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  item.title.toUpperCase(),
+                  style: AppTypography.label,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  onToggleFavorite();
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: TerminalGlyph(
+                    item.isFavorited
+                        ? Glyphs.starFilled
+                        : Glyphs.starEmpty,
+                    size: 14,
+                    color: item.isFavorited
+                        ? AppColors.amber
+                        : AppColors.textMuted,
                   ),
                 ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: onToggleFavorite,
-                  behavior: HitTestBehavior.opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: TerminalGlyph(
-                      item.isFavorited
-                          ? Glyphs.starFilled
-                          : Glyphs.starEmpty,
-                      size: 14,
-                      color: item.isFavorited
-                          ? AppColors.amber
-                          : AppColors.textMuted,
-                    ),
-                  ),
-                ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (item.excerpt != null && item.excerpt!.isNotEmpty) ...[
+            Text(
+              item.excerpt!,
+              style: AppTypography.bodyMuted,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 10),
-            if (item.excerpt != null && item.excerpt!.isNotEmpty) ...[
-              Text(
-                item.excerpt!,
-                style: AppTypography.bodyMuted,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 10),
-            ],
-            Row(
-              children: [
-                if (_difficultyLabel.isNotEmpty)
-                  _MetaTag(label: _difficultyLabel),
-                if (_difficultyLabel.isNotEmpty &&
-                    item.estimatedDurationMinutes != null)
-                  const SizedBox(width: 6),
-                if (item.estimatedDurationMinutes != null)
-                  _MetaTag(label: '${item.estimatedDurationMinutes} MIN'),
-                const Spacer(),
-                const TerminalGlyph(
-                  Glyphs.chevronRight,
-                  size: 14,
-                  color: AppColors.textMuted,
-                ),
-              ],
-            ),
           ],
-        ),
+          Row(
+            children: [
+              if (_difficultyLabel.isNotEmpty)
+                _MetaTag(label: _difficultyLabel),
+              if (_difficultyLabel.isNotEmpty &&
+                  item.estimatedDurationMinutes != null)
+                const SizedBox(width: 6),
+              if (item.estimatedDurationMinutes != null)
+                _MetaTag(label: '${item.estimatedDurationMinutes} MIN'),
+              const Spacer(),
+              const TerminalGlyph(
+                Glyphs.chevronRight,
+                size: 14,
+                color: AppColors.textMuted,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

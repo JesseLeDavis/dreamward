@@ -128,17 +128,15 @@ class _AffirmationRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final readOnly = item.isBuiltIn;
-    return GestureDetector(
-      onTap: onEdit,
-      behavior: HitTestBehavior.opaque,
-      child: NeuRaised(
-        radius: 14,
-        intensity: 0.85,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.cardPad,
-          vertical: 12,
-        ),
-        child: Row(
+    return NeuPressable(
+      radius: 14,
+      intensity: 0.85,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.cardPad,
+        vertical: 12,
+      ),
+      onPressed: onEdit,
+      child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
@@ -199,8 +197,7 @@ class _AffirmationRow extends StatelessWidget {
                 child: TerminalGlyph(Glyphs.lock,
                     size: 12, color: AppColors.textMuted),
               ),
-          ],
-        ),
+        ],
       ),
     );
   }

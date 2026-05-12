@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -379,7 +380,12 @@ class _DayCell extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: isCurrentMonth ? onTap : null,
+      onTap: isCurrentMonth
+          ? () {
+              HapticFeedback.selectionClick();
+              onTap();
+            }
+          : null,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
         child: Column(

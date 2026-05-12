@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -289,21 +290,19 @@ class _FilterButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: NeuRaised(
-        radius: 10,
-        intensity: 0.7,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TerminalGlyph(glyph, size: 12, color: AppColors.textMuted),
-            const SizedBox(width: 8),
-            Text(label,
-                style: AppTypography.tag.copyWith(color: AppColors.textMuted)),
-          ],
-        ),
+    return NeuPressable(
+      radius: 10,
+      intensity: 0.7,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      onPressed: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TerminalGlyph(glyph, size: 12, color: AppColors.textMuted),
+          const SizedBox(width: 8),
+          Text(label,
+              style: AppTypography.tag.copyWith(color: AppColors.textMuted)),
+        ],
       ),
     );
   }
@@ -343,7 +342,10 @@ class _ActiveFilterChip extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: onClear,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onClear();
+            },
             behavior: HitTestBehavior.opaque,
             child: SizedBox(
               width: 36,
@@ -462,56 +464,54 @@ class _DreamCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: NeuRaised(
-        radius: 14,
-        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header row: date + type
-            Row(
-              children: [
-                Text(_dateLabel, style: AppTypography.timestamp),
-                const SizedBox(width: 10),
-                Flexible(
-                  child: Text(
-                    _typeLabel.toUpperCase(),
-                    style: AppTypography.label,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+    return NeuPressable(
+      radius: 14,
+      padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+      onPressed: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header row: date + type
+          Row(
+            children: [
+              Text(_dateLabel, style: AppTypography.timestamp),
+              const SizedBox(width: 10),
+              Flexible(
+                child: Text(
+                  _typeLabel.toUpperCase(),
+                  style: AppTypography.label,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(width: 6),
-                if (_isContinuation)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: Text('CHAIN', style: AppTypography.labelAmber),
-                  ),
-                const TerminalGlyph(
-                  Glyphs.chevronRight,
-                  size: 14,
-                  color: AppColors.textMuted,
+              ),
+              const SizedBox(width: 6),
+              if (_isContinuation)
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: Text('CHAIN', style: AppTypography.labelAmber),
                 ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              _snippet,
-              style: AppTypography.dataOutput,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                DataTag(label: _typeLabel, color: _tagColor),
-                const Spacer(),
-                _ClarityBar(clarity: dream.clarity),
-              ],
-            ),
-          ],
-        ),
+              const TerminalGlyph(
+                Glyphs.chevronRight,
+                size: 14,
+                color: AppColors.textMuted,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            _snippet,
+            style: AppTypography.dataOutput,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              DataTag(label: _typeLabel, color: _tagColor),
+              const Spacer(),
+              _ClarityBar(clarity: dream.clarity),
+            ],
+          ),
+        ],
       ),
     );
   }

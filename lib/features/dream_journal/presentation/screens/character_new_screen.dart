@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -100,7 +101,10 @@ class _CharacterNewBodyState extends State<_CharacterNewBody> {
                   const Spacer(),
                   Switch(
                     value: _isRealPerson,
-                    onChanged: (v) => setState(() => _isRealPerson = v),
+                    onChanged: (v) {
+                      HapticFeedback.selectionClick();
+                      setState(() => _isRealPerson = v);
+                    },
                     activeThumbColor: AppColors.amber,
                     activeTrackColor: AppColors.amberMuted,
                     inactiveThumbColor: NeuColors.inkMuted,

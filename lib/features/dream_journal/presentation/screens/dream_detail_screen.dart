@@ -273,6 +273,7 @@ class _DreamDetailScreenState extends State<DreamDetailScreen> {
           const SizedBox(height: AppSpacing.sectionGap),
           FieldSection(
             label: 'SIGNAL RECORD',
+            recessed: true,
             child: Text(dream.description, style: AppTypography.narrativeBody),
           ),
 
