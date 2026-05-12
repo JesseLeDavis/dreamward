@@ -60,13 +60,11 @@ class _EmptyReadoutState extends State<EmptyReadout>
 
   @override
   Widget build(BuildContext context) {
+    // No self-decoration: the parent (NeuInset / NeuRaised / FieldSection)
+    // provides framing. A self-fill here would cover the inset shadow rim.
     return Container(
       height: widget.height,
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppColors.backgroundDeep,
-        border: Border.all(color: AppColors.borderSubtle),
-      ),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
         vertical: AppSpacing.md,

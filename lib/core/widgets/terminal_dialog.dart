@@ -3,14 +3,10 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import '../theme/neu_surface.dart';
 
-/// A confirmation/alert dialog framed like field-terminal equipment.
-///
-/// ┌─ TITLE ─────────────────────────┐
-/// │  message body                    │
-/// ├──────────────────────────────────┤
-/// │ [ CANCEL ]           [ CONFIRM ] │
-/// └──────────────────────────────────┘
+/// Confirmation/alert dialog rendered as a neumorphic pillow with inset
+/// content well and pillow buttons below — matches the rest of the app.
 class TerminalDialog extends StatelessWidget {
   const TerminalDialog({
     super.key,
@@ -76,136 +72,72 @@ class TerminalDialog extends StatelessWidget {
     return result ?? false;
   }
 
+  NeuButtonTone _toneFor(TerminalActionTone tone) {
+    switch (tone) {
+      case TerminalActionTone.alert:
+        return NeuButtonTone.alert;
+      case TerminalActionTone.amber:
+        return NeuButtonTone.amber;
+      case TerminalActionTone.muted:
+        return NeuButtonTone.neutral;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
       insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 80),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.backgroundRaised,
-          border: Border.all(color: AppColors.borderStrong),
-        ),
+      shape:
+          const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+      child: NeuRaised(
+        radius: 18,
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _Header(title: title),
-            const Divider(
-              height: 1,
-              thickness: 1,
-              color: AppColors.borderNormal,
-            ),
+            // Title — small uppercase amber label, no header bar.
             Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.lg,
+              padding: const EdgeInsets.only(left: 4, bottom: 12),
+              child: Text(
+                title.toUpperCase(),
+                style: AppTypography.labelAmber,
+                overflow: TextOverflow.ellipsis,
               ),
+            ),
+            // Message body sits in a recessed well so it reads as data
+            // surfaced from the system.
+            NeuInset(
+              radius: 12,
+              padding: const EdgeInsets.all(AppSpacing.md),
               child: body ??
                   Text(
                     message!,
                     style: AppTypography.signalText,
                   ),
             ),
-            const Divider(
-              height: 1,
-              thickness: 1,
-              color: AppColors.borderNormal,
+            const SizedBox(height: AppSpacing.lg),
+            // Pillow action buttons.
+            Row(
+              children: [
+                for (var i = 0; i < actions.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 10),
+                  Expanded(
+                    child: NeuButton(
+                      label: actions[i].label,
+                      tone: _toneFor(actions[i].tone),
+                      expand: true,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      onPressed: () =>
+                          Navigator.of(context).pop(actions[i].value),
+                    ),
+                  ),
+                ],
+              ],
             ),
-            _ActionRow(actions: actions),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header({required this.title});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: AppSpacing.sectionHeaderH,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.cardPad),
-      decoration: const BoxDecoration(
-        color: AppColors.amberCarrier,
-        border: Border(
-          left: BorderSide(color: AppColors.amberDim, width: 4),
-        ),
-      ),
-      alignment: Alignment.centerLeft,
-      child: Text(
-        title.toUpperCase(),
-        style: AppTypography.labelAmber,
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
-}
-
-class _ActionRow extends StatelessWidget {
-  const _ActionRow({required this.actions});
-  final List<TerminalDialogAction> actions;
-
-  @override
-  Widget build(BuildContext context) {
-    final children = <Widget>[];
-    for (var i = 0; i < actions.length; i++) {
-      children.add(
-        Expanded(
-          child: _ActionButton(action: actions[i]),
-        ),
-      );
-      if (i < actions.length - 1) {
-        children.add(
-          const VerticalDivider(
-            width: 1,
-            thickness: 1,
-            color: AppColors.borderNormal,
-          ),
-        );
-      }
-    }
-    return SizedBox(
-      height: 44,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: children,
-      ),
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({required this.action});
-  final TerminalDialogAction action;
-
-  Color _toneColor() {
-    switch (action.tone) {
-      case TerminalActionTone.alert:
-        return AppColors.statusAlert;
-      case TerminalActionTone.muted:
-        return AppColors.textSecondary;
-      case TerminalActionTone.amber:
-        return AppColors.amber;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _toneColor();
-    return InkWell(
-      onTap: () => Navigator.of(context).pop(action.value),
-      child: Center(
-        child: Text(
-          '[ ${action.label.toUpperCase()} ]',
-          style: AppTypography.label.copyWith(color: color),
         ),
       ),
     );

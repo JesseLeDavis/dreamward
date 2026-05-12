@@ -11,6 +11,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/neu_surface.dart';
 import '../../../../core/widgets/data_tag.dart';
 import '../../../../core/widgets/empty_readout.dart';
 import '../../../../core/widgets/field_section.dart';
@@ -221,7 +222,7 @@ class _TodayScreenState extends State<TodayScreen> {
             lastDream: _lastDream,
             lastObe: _lastObe,
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.sectionGap),
           _QuickLogRow(),
           const SizedBox(height: AppSpacing.sectionGap),
           _AffirmationSection(
@@ -394,40 +395,45 @@ class _IntentionSectionState extends State<_IntentionSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Editable field area
+          // Editable field area — recessed well so the input reads as a
+          // place where data goes IN.
           GestureDetector(
             onTap: () => setState(() => _editing = true),
-            child: _editing
-                ? TextField(
-                    controller: _controller,
-                    autofocus: true,
-                    textCapitalization: TextCapitalization.sentences,
-                    style: AppTypography.body,
-                    decoration: InputDecoration(
-                      hintText: '// awaiting target coordinates',
-                      hintStyle: AppTypography.hint,
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.borderSubtle),
+            child: NeuInset(
+              radius: 10,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 12),
+              accentBorder: _editing,
+              child: _editing
+                  ? TextField(
+                      controller: _controller,
+                      autofocus: true,
+                      textCapitalization: TextCapitalization.sentences,
+                      style: AppTypography.body,
+                      decoration: InputDecoration(
+                        hintText: '// awaiting target coordinates',
+                        hintStyle: AppTypography.hint,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                        isDense: true,
+                        filled: false,
                       ),
-                      contentPadding: EdgeInsets.zero,
-                      filled: false,
+                      onSubmitted: (_) => _save(),
+                      onTapOutside: (_) => _save(),
+                    )
+                  : Text(
+                      _hasTarget
+                          ? _controller.text
+                          : '// awaiting target coordinates',
+                      style: _hasTarget
+                          ? AppTypography.body
+                          : AppTypography.hint,
                     ),
-                    onSubmitted: (_) => _save(),
-                    onTapOutside: (_) => _save(),
-                  )
-                : Text(
-                    _hasTarget
-                        ? _controller.text
-                        : '// awaiting target coordinates',
-                    style:
-                        _hasTarget ? AppTypography.body : AppTypography.hint,
-                  ),
+            ),
           ),
-          const SizedBox(height: 8),
-          const Divider(height: 1, color: AppColors.borderSubtle),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           // Status row
           Row(
             children: [
@@ -517,53 +523,67 @@ class _DashboardPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return FieldSection(
       label: 'DASHBOARD',
-      contentPadding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 3-cell metrics row
+          // 3-cell metrics row — each cell is an inset well so the values
+          // read as transmitted readings inside the dashboard pillow.
           IntrinsicHeight(
             child: Row(
               children: [
                 Expanded(
-                  child: _MetricCell(
-                    label: 'SESSIONS / MO',
-                    value: sessionsThisMonth > 0
-                        ? sessionsThisMonth.toString().padLeft(2, '0')
-                        : '--',
+                  child: NeuInset(
+                    radius: 10,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 10),
+                    child: _MetricCell(
+                      label: 'SESSIONS / MO',
+                      value: sessionsThisMonth > 0
+                          ? sessionsThisMonth.toString().padLeft(2, '0')
+                          : '--',
+                    ),
                   ),
                 ),
-                const _CellDivider(),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: _MetricCell(
-                    label: 'LAST OBE',
-                    value: lastObeDate,
+                  child: NeuInset(
+                    radius: 10,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 10),
+                    child: _MetricCell(
+                      label: 'LAST OBE',
+                      value: lastObeDate,
+                    ),
                   ),
                 ),
-                const _CellDivider(),
-                Expanded(child: _MoonCell()),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: NeuInset(
+                    radius: 10,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 10),
+                    child: _MoonCell(),
+                  ),
+                ),
               ],
             ),
           ),
-          const Divider(
-            height: 1,
-            thickness: 1,
-            color: AppColors.borderSubtle,
+          const SizedBox(height: 10),
+          // Wide last-transmission well
+          NeuInset(
+            radius: 10,
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.cardPad, vertical: 10),
+            child: !_hasData
+                ? const EmptyReadout(
+                    label: 'NO TRANSMISSIONS — CARRIER IDLE',
+                    sublabel: 'Your most recent session will appear here.',
+                    height: 96,
+                  )
+                : _dreamIsMoreRecent
+                    ? _LastDreamRow(dream: lastDream!)
+                    : _LastObeRow(obe: lastObe!),
           ),
-          // Wide last-transmission cell
-          if (!_hasData)
-            const Padding(
-              padding: EdgeInsets.all(AppSpacing.cardPad),
-              child: EmptyReadout(
-                label: 'NO TRANSMISSIONS — CARRIER IDLE',
-                sublabel: 'Your most recent session will appear here.',
-                height: 96,
-              ),
-            )
-          else if (_dreamIsMoreRecent)
-            _LastDreamRow(dream: lastDream!)
-          else
-            _LastObeRow(obe: lastObe!),
         ],
       ),
     );
@@ -577,22 +597,16 @@ class _MetricCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 10,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: AppTypography.microMono),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: AppTypography.displayAmber.copyWith(fontSize: 18),
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTypography.microMono),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: AppTypography.displayAmber.copyWith(fontSize: 18),
+        ),
+      ],
     );
   }
 }
@@ -601,45 +615,30 @@ class _MoonCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final phase = _moonPhase(DateTime.now());
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('MOON', style: AppTypography.microMono),
-          const SizedBox(height: 4),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                _moonGlyph(phase),
-                style: const TextStyle(
-                  color: AppColors.amber,
-                  fontSize: 18,
-                  height: 1.0,
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('MOON', style: AppTypography.microMono),
+        const SizedBox(height: 4),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              _moonGlyph(phase),
+              style: const TextStyle(
+                color: AppColors.amber,
+                fontSize: 18,
+                height: 1.0,
               ),
-              const SizedBox(width: 6),
-              Text(
-                _moonLabel(phase),
-                style: AppTypography.labelAmber,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CellDivider extends StatelessWidget {
-  const _CellDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 1,
-      color: AppColors.borderSubtle,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              _moonLabel(phase),
+              style: AppTypography.labelAmber,
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -650,42 +649,36 @@ class _LastDreamRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.cardPad,
-        vertical: 10,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text('LAST TXMIT', style: AppTypography.microMono),
-              const SizedBox(width: 8),
-              Text('▸ DREAM',
-                  style: AppTypography.label
-                      .copyWith(color: AppColors.amber)),
-              const Spacer(),
-              Text(
-                _formatDateShort(dream.createdAt),
-                style: AppTypography.timestamp,
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            dream.title,
-            style: AppTypography.body,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 6),
-          DataTag(
-            label: _dreamTypeLabels[dream.dreamType.clamp(0, 6)],
-            color: _dreamTypeColors[dream.dreamType.clamp(0, 6)],
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text('LAST TXMIT', style: AppTypography.microMono),
+            const SizedBox(width: 8),
+            Text('▸ DREAM',
+                style: AppTypography.label
+                    .copyWith(color: AppColors.amber)),
+            const Spacer(),
+            Text(
+              _formatDateShort(dream.createdAt),
+              style: AppTypography.timestamp,
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          dream.title,
+          style: AppTypography.body,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 6),
+        DataTag(
+          label: _dreamTypeLabels[dream.dreamType.clamp(0, 6)],
+          color: _dreamTypeColors[dream.dreamType.clamp(0, 6)],
+        ),
+      ],
     );
   }
 }
@@ -696,48 +689,42 @@ class _LastObeRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.cardPad,
-        vertical: 10,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text('LAST TXMIT', style: AppTypography.microMono),
-              const SizedBox(width: 8),
-              Text('▸ OBE',
-                  style: AppTypography.label
-                      .copyWith(color: AppColors.amber)),
-              const Spacer(),
-              Text(
-                _formatDateShort(obe.sessionDate),
-                style: AppTypography.timestamp,
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              DataTag(
-                label: _sessionTypeLabels[obe.sessionType.clamp(0, 2)],
-                color: AppColors.amber,
-              ),
-              const SizedBox(width: 6),
-              DataTag(
-                label: _outcomeLabels[obe.entryState.clamp(0, 2)],
-                color: obe.entryState == 2
-                    ? AppColors.signalGreenDim
-                    : obe.entryState == 0
-                        ? AppColors.statusAlert
-                        : AppColors.amber,
-              ),
-            ],
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text('LAST TXMIT', style: AppTypography.microMono),
+            const SizedBox(width: 8),
+            Text('▸ OBE',
+                style: AppTypography.label
+                    .copyWith(color: AppColors.amber)),
+            const Spacer(),
+            Text(
+              _formatDateShort(obe.sessionDate),
+              style: AppTypography.timestamp,
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            DataTag(
+              label: _sessionTypeLabels[obe.sessionType.clamp(0, 2)],
+              color: AppColors.amber,
+            ),
+            const SizedBox(width: 6),
+            DataTag(
+              label: _outcomeLabels[obe.entryState.clamp(0, 2)],
+              color: obe.entryState == 2
+                  ? AppColors.signalGreenDim
+                  : obe.entryState == 0
+                      ? AppColors.statusAlert
+                      : AppColors.amber,
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -748,26 +735,22 @@ class _QuickLogRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton(
+          child: NeuButton(
+            label: '+ LOG OBE',
+            tone: NeuButtonTone.amber,
+            expand: true,
+            padding: const EdgeInsets.symmetric(vertical: 14),
             onPressed: () => context.pushNamed(AppRoutes.obeNew),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: AppColors.borderNormal),
-              foregroundColor: AppColors.amber,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-            child: const Text('+ LOG OBE'),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 16),
         Expanded(
-          child: OutlinedButton(
+          child: NeuButton(
+            label: '+ LOG DREAM',
+            tone: NeuButtonTone.amber,
+            expand: true,
+            padding: const EdgeInsets.symmetric(vertical: 14),
             onPressed: () => context.pushNamed(AppRoutes.dreamNew),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: AppColors.borderNormal),
-              foregroundColor: AppColors.amber,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-            child: const Text('+ LOG DREAM'),
           ),
         ),
       ],

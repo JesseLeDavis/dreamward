@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_typography.dart';
+
 /// Dark-neumorphic surface tokens. Slightly warmer/lighter than AppColors
 /// scaffold so light/dark shadows have room to read.
 abstract final class NeuColors {
@@ -59,8 +61,9 @@ class NeuRaised extends StatelessWidget {
   }
 }
 
-/// Inset (pressed-in) neumorphic surface — flat darker fill with a faint
-/// dark hairline for depth. No diagonal gradient.
+/// Inset (pressed-in) neumorphic surface — true inner shadows, like
+/// CSS `box-shadow: inset`. Dark rim at top-left, light rim at bottom-right
+/// makes the surface read as recessed into the parent pillow.
 class NeuInset extends StatelessWidget {
   const NeuInset({
     super.key,
@@ -77,23 +80,207 @@ class NeuInset extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: NeuColors.surfaceInset,
-        borderRadius: BorderRadius.circular(radius),
-        border: accentBorder
-            ? Border.all(
-                color: NeuColors.accent.withValues(alpha: 0.45),
-                width: 1,
-              )
-            : Border.all(
-                color: NeuColors.shadowDark.withValues(alpha: 0.6),
-                width: 1,
-              ),
+    return CustomPaint(
+      painter: _NeuInsetPainter(
+        radius: radius,
+        accentBorder: accentBorder,
       ),
       child: Padding(
         padding: padding ?? EdgeInsets.zero,
         child: child,
+      ),
+    );
+  }
+}
+
+/// Paints a recessed well: filled inset surface, then two clipped inner
+/// shadows (dark from top-left, light from bottom-right). Optional accent
+/// stroke painted last so it sits above the shadows.
+class _NeuInsetPainter extends CustomPainter {
+  const _NeuInsetPainter({
+    required this.radius,
+    required this.accentBorder,
+  });
+
+  final double radius;
+  final bool accentBorder;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
+
+    // Base fill — slightly darker than the surrounding raised surface.
+    canvas.drawRRect(rrect, Paint()..color = NeuColors.surfaceInset);
+
+    // Clip everything that follows to the rounded rect so the blurred
+    // shadow paths only show their inside edge.
+    canvas.save();
+    canvas.clipRRect(rrect);
+
+    _paintInnerShadow(
+      canvas, size,
+      offset: const Offset(3, 3),
+      blur: 7,
+      color: NeuColors.shadowDark,
+    );
+    _paintInnerShadow(
+      canvas, size,
+      offset: const Offset(-2, -2),
+      blur: 5,
+      color: NeuColors.shadowLight.withValues(alpha: 0.85),
+    );
+
+    canvas.restore();
+
+    // Accent border (focused input states) — painted on top of the shadows
+    // so the rim stays crisp.
+    if (accentBorder) {
+      final stroke = Paint()
+        ..color = NeuColors.accent.withValues(alpha: 0.55)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1;
+      // Inset by 0.5 so the 1px stroke sits inside the rrect cleanly.
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          rect.deflate(0.5),
+          Radius.circular(radius - 0.5),
+        ),
+        stroke,
+      );
+    }
+  }
+
+  /// Standard CSS `inset` shadow trick: draw a path that is a large outer
+  /// rect with a hole the shape of our rounded rect, shift the hole by the
+  /// shadow offset, blur the whole path, and rely on the canvas clip to
+  /// keep only the portion inside our well.
+  void _paintInnerShadow(
+    Canvas canvas,
+    Size size, {
+    required Offset offset,
+    required double blur,
+    required Color color,
+  }) {
+    final pad = blur * 3;
+    final outer = Rect.fromLTWH(
+      -pad,
+      -pad,
+      size.width + pad * 2,
+      size.height + pad * 2,
+    );
+    final hole = (Offset.zero & size).shift(offset);
+    final path = Path()
+      ..addRect(outer)
+      ..addRRect(RRect.fromRectAndRadius(hole, Radius.circular(radius)))
+      ..fillType = PathFillType.evenOdd;
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, blur),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_NeuInsetPainter old) =>
+      old.radius != radius || old.accentBorder != accentBorder;
+}
+
+/// Tone of a NeuButton — controls the foreground color and which palette
+/// the label/icon read against the surface.
+enum NeuButtonTone { amber, neutral, alert }
+
+/// Pillow-style button. Raised at rest, pressed-in (inset shadow) while
+/// the touch is down. Use anywhere we'd otherwise reach for OutlinedButton
+/// or a bracketed `[ ACTION ]` label — keeps the surface language consistent.
+class NeuButton extends StatefulWidget {
+  const NeuButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.icon,
+    this.tone = NeuButtonTone.neutral,
+    this.radius = 12,
+    this.padding =
+        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    this.expand = false,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final IconData? icon;
+  final NeuButtonTone tone;
+  final double radius;
+  final EdgeInsetsGeometry padding;
+
+  /// Stretch to fill the parent's main-axis extent. Useful inside Row/Expanded.
+  final bool expand;
+
+  @override
+  State<NeuButton> createState() => _NeuButtonState();
+}
+
+class _NeuButtonState extends State<NeuButton> {
+  bool _down = false;
+
+  Color _fg() {
+    switch (widget.tone) {
+      case NeuButtonTone.amber:
+        return NeuColors.accent;
+      case NeuButtonTone.alert:
+        return NeuColors.stampRed;
+      case NeuButtonTone.neutral:
+        return NeuColors.inkPrimary;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = _fg();
+    final disabled = widget.onPressed == null;
+    final content = Padding(
+      padding: widget.padding,
+      child: Row(
+        mainAxisSize: widget.expand ? MainAxisSize.max : MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (widget.icon != null) ...[
+            Icon(widget.icon, size: 16, color: fg),
+            const SizedBox(width: 8),
+          ],
+          Text(
+            widget.label.toUpperCase(),
+            style: AppTypography.label.copyWith(
+              color: disabled ? NeuColors.inkMuted : fg,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: disabled ? null : (_) => setState(() => _down = true),
+      onTapCancel: disabled ? null : () => setState(() => _down = false),
+      onTapUp: disabled ? null : (_) => setState(() => _down = false),
+      onTap: widget.onPressed,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 80),
+        transitionBuilder: (c, a) => FadeTransition(opacity: a, child: c),
+        child: _down
+            ? NeuInset(
+                key: const ValueKey('down'),
+                radius: widget.radius,
+                child: content,
+              )
+            : NeuRaised(
+                key: const ValueKey('up'),
+                radius: widget.radius,
+                intensity: 0.65,
+                child: content,
+              ),
       ),
     );
   }

@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import '../theme/neu_surface.dart';
 import 'terminal_glyph.dart';
 
 /// Shared search field used in list screens (Dreams, OBE).
-/// Renders as a single rounded inset well with no nested decorations.
+/// Renders as a recessed neumorphic well — input reads as a place data goes IN.
 class SignalSearchField extends StatelessWidget {
   const SignalSearchField({
     super.key,
@@ -26,20 +27,13 @@ class SignalSearchField extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenH,
-        8,
+        12,
         AppSpacing.screenH,
-        10,
+        16,
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.borderNormal,
-          border: Border.all(
-            color: AppColors.borderStrong.withValues(alpha: 0.6),
-            width: 1,
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      child: NeuInset(
+        radius: 12,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Row(
           children: [
             const TerminalGlyph(
